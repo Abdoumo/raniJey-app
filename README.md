@@ -1,11 +1,11 @@
-# TOMATO - Food Ordering Website
+# RaniJey - Food Ordering Website
 
 This repository hosts the source code for TOMATO, a dynamic food ordering website built with the MERN Stack. It offers a user-friendly platform for seamless online food ordering.
 
 ## Demo
 
-- User Panel: [https://food-delivery-frontend-s2l9.onrender.com/](https://food-delivery-frontend-s2l9.onrender.com/)
-- Admin Panel: [https://food-delivery-admin-wrme.onrender.com/](https://food-delivery-admin-wrme.onrender.com/)
+- User Panel: [Ranijey.com/](https://Algelearning.com/)
+- Admin Panel: [https://food-Ranijey.com/](https://Algelearning.com/)
 
 ## Features
 
@@ -46,7 +46,7 @@ This repository hosts the source code for TOMATO, a dynamic food ordering websit
 Clone the project
 
 ```bash
-    git clone https://github.com/Mshandev/Food-Delivery
+    git clone https://github.com/Abdoumo/raniJey-app.git
 ```
 Go to the project directory
 
@@ -75,7 +75,7 @@ Setup Environment Vaiables
 
 ```Make .env file in "backend" folder and store environment Variables
   JWT_SECRET=YOUR_SECRET_TEXT
-  SALT=YOUR_SALT_VALUE
+  SALT=10
   MONGO_URL=YOUR_DATABASE_URL
   STRIPE_SECRET_KEY=YOUR_KEY
  ```
