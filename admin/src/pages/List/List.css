@@ -1,0 +1,180 @@
+.list {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    background: #f5f7fa;
+}
+
+.list .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 32px;
+    letter-spacing: -0.5px;
+}
+
+.list-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.list-table-format {
+    display: grid;
+    grid-template-columns: 80px 2fr 1fr 1fr 80px;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #333;
+}
+
+.list-table-format:last-child {
+    border-bottom: none;
+}
+
+.list-table-format.title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 700;
+    padding: 18px 20px;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.list-table-format.title b {
+    font-weight: 700;
+}
+
+.list-table-format b {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.list-table-format img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.list-table-format p {
+    margin: 0;
+}
+
+.list-table-format p:last-child {
+    text-align: center;
+    color: #d32f2f;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.list-table-format p:last-child:hover {
+    background: #ffebee;
+    color: #b71c1c;
+}
+
+.list-loading,
+.list-error,
+.list-empty {
+    background: white;
+    border-radius: 12px;
+    padding: 60px 30px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.list-loading p,
+.list-empty p {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+.list-error {
+    background: #ffebee;
+    border: 2px solid #ffcdd2;
+}
+
+.list-error p {
+    font-size: 16px;
+    color: #c62828;
+    margin: 0 0 16px 0;
+    font-weight: 600;
+}
+
+.retry-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #d32f2f;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+    background: #b71c1c;
+}
+
+.empty-subtext {
+    font-size: 14px;
+    color: #999;
+    margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+    .list {
+        padding: 24px;
+    }
+
+    .list .page-title {
+        font-size: 22px;
+        margin-bottom: 24px;
+    }
+
+    .list-table-format {
+        grid-template-columns: 60px 2fr 1fr 80px;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+
+    .list-table-format img {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 600px) {
+    .list {
+        padding: 16px;
+    }
+
+    .list .page-title {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .list-table-format {
+        grid-template-columns: 50px 1fr 80px;
+        gap: 8px;
+        padding: 12px;
+        font-size: 12px;
+    }
+
+    .list-table-format.title {
+        display: none;
+    }
+
+    .list-table-format img {
+        width: 45px;
+        height: 45px;
+    }
+}

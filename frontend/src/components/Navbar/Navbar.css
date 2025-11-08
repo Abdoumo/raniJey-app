@@ -1,0 +1,250 @@
+.navbar {
+  padding: 16px 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  padding: 16px 28px;
+  animation: slideIn 0.5s ease;
+}
+
+.navbar .logo {
+  width: 77px;
+  font-weight: 700;
+  font-size: 24px;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.navbar-menu {
+  display: flex;
+  list-style: none;
+  gap: 32px;
+  color: #666;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.navbar-menu a {
+  color: #666;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.navbar-menu a:hover {
+  color: #ff6b35;
+}
+
+.navbar-menu a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  transition: width 0.3s ease;
+}
+
+.navbar-menu a:hover::after,
+.navbar-menu a.active::after {
+  width: 100%;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.navbar-right img {
+  width: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.navbar-right img:hover {
+  transform: scale(1.1);
+}
+
+.navbar button {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  font-size: 15px;
+  color: white;
+  border: none;
+  padding: 11px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.navbar button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.navbar button:active {
+  transform: translateY(0);
+}
+
+.navbar-search-icon {
+  position: relative;
+  cursor: pointer;
+}
+
+.navbar-search-icon .dot {
+  position: absolute;
+  min-width: 8px;
+  min-height: 8px;
+  background-color: #ff6b35;
+  border-radius: 50%;
+  top: -6px;
+  right: -6px;
+  animation: scaleIn 0.3s ease;
+}
+
+.navbar-profile {
+  position: relative;
+}
+
+.navbar-profile img {
+  width: 28px;
+  cursor: pointer;
+}
+
+.nav-profile-dropdown {
+  position: absolute;
+  display: none;
+  right: 0;
+  z-index: 10;
+}
+
+.navbar-profile:hover .nav-profile-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  list-style: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.nav-profile-dropdown li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.nav-profile-dropdown li:hover {
+  background-color: #fff4f1;
+  color: #ff6b35;
+}
+
+.nav-profile-dropdown img {
+  width: 18px;
+}
+
+.nav-profile-dropdown p {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-profile-dropdown hr {
+  margin: 4px 0;
+  border: none;
+  height: 1px;
+  background-color: #e8e8e8;
+}
+
+@media (max-width: 1050px) {
+  .navbar {
+    padding: 14px 20px;
+  }
+
+  .navbar .logo {
+    width: 140px;
+    font-size: 22px;
+  }
+
+  .navbar-menu {
+    gap: 24px;
+    font-size: 15px;
+  }
+
+  .navbar-right {
+    gap: 20px;
+  }
+
+  .navbar-right img {
+    width: 22px;
+  }
+
+  .navbar button {
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .navbar {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+
+  .navbar .logo {
+    width: 120px;
+    font-size: 20px;
+  }
+
+  .navbar-menu {
+    gap: 18px;
+    font-size: 14px;
+  }
+
+  .navbar-right {
+    gap: 16px;
+  }
+
+  .navbar-right img {
+    width: 20px;
+  }
+
+  .navbar button {
+    padding: 9px 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 750px) {
+  .navbar-menu {
+    display: none;
+  }
+
+  .navbar {
+    padding: 12px 14px;
+  }
+
+  .navbar-right {
+    gap: 14px;
+  }
+
+  .navbar button {
+    padding: 8px 16px;
+  }
+}

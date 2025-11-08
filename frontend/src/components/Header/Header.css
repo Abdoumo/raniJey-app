@@ -1,0 +1,145 @@
+.header {
+  height: 500px;
+  margin: 20px auto;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8a50 100%);
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(255, 107, 53, 0.25);
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.header-contents {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  max-width: 55%;
+  height: 100%;
+  left: 60px;
+  animation: slideIn 0.8s ease;
+  z-index: 2;
+}
+
+.header-contents h2 {
+  font-weight: 700;
+  color: white;
+  font-size: 56px;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.header-contents p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 400;
+  max-width: 95%;
+}
+
+.header-contents button {
+  border: none;
+  color: #ff6b35;
+  font-weight: 600;
+  padding: 14px 40px;
+  background-color: white;
+  font-size: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.header-contents button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background-color: #f8f8f8;
+}
+
+.header-contents button:active {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1050px) {
+  .header {
+    height: 420px;
+  }
+
+  .header-contents {
+    max-width: 60%;
+    left: 50px;
+  }
+
+  .header-contents h2 {
+    font-size: 48px;
+  }
+
+  .header-contents p {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 900px) {
+  .header {
+    height: 380px;
+    margin: 16px auto;
+  }
+
+  .header-contents {
+    max-width: 65%;
+    left: 40px;
+    gap: 20px;
+  }
+
+  .header-contents h2 {
+    font-size: 42px;
+  }
+
+  .header-contents p {
+    font-size: 14px;
+  }
+
+  .header-contents button {
+    padding: 12px 32px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 750px) {
+  .header {
+    height: 320px;
+  }
+
+  .header-contents {
+    max-width: 100%;
+    left: 30px;
+    right: 30px;
+    gap: 16px;
+  }
+
+  .header-contents h2 {
+    font-size: 32px;
+  }
+
+  .header-contents p {
+    display: none;
+  }
+
+  .header-contents button {
+    padding: 10px 28px;
+    font-size: 13px;
+  }
+}

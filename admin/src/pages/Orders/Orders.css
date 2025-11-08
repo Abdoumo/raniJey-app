@@ -1,0 +1,178 @@
+.order {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    background: #f5f7fa;
+}
+
+.order .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 32px;
+    letter-spacing: -0.5px;
+}
+
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    align-items: start;
+    transition: all 0.3s ease;
+}
+
+.order-item:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.order-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.order-item > div {
+    flex: 1;
+}
+
+.order-item-food {
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+.order-item-name {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.order-item-address {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #666;
+}
+
+.order-item-address p {
+    margin: 0;
+}
+
+.order-item-phone {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+}
+
+.order-item > p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #1a1a1a;
+    min-width: 80px;
+    text-align: center;
+}
+
+.order-item select {
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+    font-size: 13px;
+    min-width: 140px;
+}
+
+.order-item select:hover {
+    border-color: #667eea;
+}
+
+.order-item select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+@media (max-width: 1200px) {
+    .order {
+        padding: 24px;
+    }
+
+    .order .page-title {
+        font-size: 22px;
+        margin-bottom: 24px;
+    }
+
+    .order-item {
+        grid-template-columns: auto 1fr;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .order-item > p {
+        min-width: 70px;
+    }
+
+    .order-item select {
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .order {
+        padding: 16px;
+    }
+
+    .order .page-title {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .order-list {
+        gap: 16px;
+    }
+
+    .order-item {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .order-item img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .order-item-food {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .order-item > p {
+        min-width: auto;
+        font-size: 13px;
+    }
+
+    .order-item select {
+        width: 100%;
+        min-width: auto;
+    }
+}

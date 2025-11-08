@@ -1,0 +1,135 @@
+.sidebar {
+    width: 280px;
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 24px 0;
+    overflow-y: auto;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.sidebar-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.sidebar-item.active {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.sidebar-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-item:hover .sidebar-icon-wrapper {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-item.active .sidebar-icon-wrapper {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.sidebar-label {
+    flex: 1;
+    white-space: nowrap;
+}
+
+.sidebar-indicator {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 3px 0 0 3px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-item.active .sidebar-indicator {
+    height: 30px;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 80px;
+        padding: 20px 0;
+    }
+
+    .sidebar-item {
+        padding: 12px 8px;
+        justify-content: center;
+        gap: 0;
+    }
+
+    .sidebar-label {
+        display: none;
+    }
+
+    .sidebar-icon-wrapper {
+        width: 28px;
+        height: 28px;
+    }
+
+    .sidebar-indicator {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 70px;
+        padding: 16px 0;
+    }
+
+    .sidebar-item {
+        padding: 10px 6px;
+    }
+
+    .sidebar-icon-wrapper {
+        width: 24px;
+        height: 24px;
+    }
+
+    .sidebar-icon {
+        width: 16px;
+        height: 16px;
+    }
+}
