@@ -8,6 +8,10 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, default: "Food Processing" },
   date: { type: Date, default: Date.now() },
   payment: { type: Boolean, default: false },
+  assignedDeliveryPerson: { type: mongoose.Schema.Types.ObjectId, ref: "user", default: null },
+  pickupLocation: { latitude: Number, longitude: Number },
+  deliveryLocation: { latitude: Number, longitude: Number },
+  assignedAt: { type: Date, default: null },
 });
 
 const orderModel =

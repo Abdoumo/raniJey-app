@@ -227,29 +227,39 @@
   justify-content: center;
   gap: 6px;
   padding: 14px;
-  background: white;
-  border: 2px solid #e8e8e8;
+  background: #ffffff;
+  border: 2px solid #d0d0d0;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Poppins', sans-serif;
 }
 
 .role-btn:hover {
   border-color: #ff6b35;
-  background-color: #fff4f1;
+  background-color: #fff9f5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
 }
 
 .role-btn.active {
   background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   border-color: #ff6b35;
-  color: white;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
+  transform: translateY(-2px);
 }
 
 .role-icon {
   font-size: 24px;
   display: block;
+  transition: all 0.3s ease;
+}
+
+.role-btn.active .role-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .role-text {

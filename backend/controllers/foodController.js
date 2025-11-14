@@ -12,6 +12,7 @@ const addFood = async (req, res) => {
     price: req.body.price,
     category: req.body.category,
     image: image_filename,
+    shopId: req.body.shopId,
   });
   try {
     let userData = await userModel.findById(req.body.userId);
@@ -56,4 +57,16 @@ const removeFood = async (req, res) => {
   }
 };
 
-export { addFood, listFood, removeFood };
+// get foods by shop id
+const getFoodsByShop = async (req, res) => {
+  try {
+    const { shopId } = req.params;
+    const foods = await foodModel.find({ shopId }).populate("shopId");
+    res.json({ success: true, data: foods });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+export { addFood, listFood, removeFood, getFoodsByShop };

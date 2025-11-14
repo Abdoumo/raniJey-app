@@ -7,11 +7,13 @@ import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { token, admin, setAdmin, setToken } = useContext(StoreContext);
+  const { token, admin, setAdmin, setToken, userName, userRole } = useContext(StoreContext);
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("admin");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
     setToken("");
     setAdmin(false);
     toast.success("Logout Successfully");
@@ -29,8 +31,8 @@ const Navbar = () => {
         <div className="admin-profile">
           <img className="admin-avatar" src={assets.profile_image} alt="Profile" />
           <div className="admin-info">
-            <p className="admin-label">RaniJay</p>
-            <p className="admin-email">admin@RaniJay.com</p>
+            <p className="admin-label">{userName || "Admin"}</p>
+            <p className="admin-email">{userRole ? `Role: ${userRole.toUpperCase()}` : "Not logged in"}</p>
           </div>
         </div>
 

@@ -10,8 +10,42 @@ const List = ({ url }) => {
   const navigate = useNavigate();
   const { token,admin } = useContext(StoreContext);
   const [list, setList] = useState([]);
+  const [categories, setCategories] = useState({});
+  const [shops, setShops] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${url}/api/category/list`);
+      if (response.data.success) {
+        const cats = response.data.data || response.data.categories || [];
+        const catMap = {};
+        cats.forEach(cat => {
+          catMap[cat._id] = cat.name;
+        });
+        setCategories(catMap);
+      }
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    }
+  };
+
+  const fetchShops = async () => {
+    try {
+      const response = await axios.get(`${url}/api/shop/list`);
+      if (response.data.success) {
+        const shopsList = response.data.data || response.data.shops || [];
+        const shopMap = {};
+        shopsList.forEach(shop => {
+          shopMap[shop._id] = shop.name;
+        });
+        setShops(shopMap);
+      }
+    } catch (err) {
+      console.error("Error fetching shops:", err);
+    }
+  };
 
   const fetchList = async () => {
     try {
@@ -51,6 +85,8 @@ const List = ({ url }) => {
       toast.error("Please Login First");
       navigate("/");
     }
+    fetchCategories();
+    fetchShops();
     fetchList();
   }, []);
 
@@ -78,15 +114,20 @@ const List = ({ url }) => {
             <b>Name</b>
             <b>Category</b>
             <b>Price</b>
+            <b>Shop</b>
             <b>Action</b>
           </div>
           {list.map((item, index) => {
+            const categoryName = typeof item.category === 'object' ? item.category.name : categories[item.category] || item.category || 'N/A';
+            const shopName = typeof item.shopId === 'object' ? item.shopId.name : shops[item.shopId] || item.shopId || 'N/A';
+
             return (
               <div key={index} className="list-table-format">
                 <img src={`${url}/images/` + item.image} alt={item.name} />
                 <p>{item.name}</p>
-                <p>{item.category}</p>
+                <p className="category-name">{categoryName}</p>
                 <p>Da{item.price}</p>
+                <p className="shop-name">{shopName}</p>
                 <p onClick={() => removeFood(item._id)} className="cursor">
                   X
                 </p>

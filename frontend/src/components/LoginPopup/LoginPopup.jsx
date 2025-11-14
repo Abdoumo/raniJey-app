@@ -13,7 +13,7 @@ const LoginPopup = ({ setShowLogin }) => {
     email: "",
     password: "",
     phone: "",
-    role: "client",
+    role: "user",
   });
 
   const validatePhoneNumber = (phone) => {
@@ -74,16 +74,16 @@ const LoginPopup = ({ setShowLogin }) => {
             <div className="role-options">
               <button
                 type="button"
-                className={`role-btn ${data.role === "client" ? "active" : ""}`}
-                onClick={() => setData((prev) => ({ ...prev, role: "client" }))}
+                className={`role-btn ${data.role === "user" ? "active" : ""}`}
+                onClick={() => setData((prev) => ({ ...prev, role: "user" }))}
               >
                 <span className="role-icon">👤</span>
                 <span className="role-text">Client</span>
               </button>
               <button
                 type="button"
-                className={`role-btn ${data.role === "livreur" ? "active" : ""}`}
-                onClick={() => setData((prev) => ({ ...prev, role: "livreur" }))}
+                className={`role-btn ${data.role === "Livreur" ? "active" : ""}`}
+                onClick={() => setData((prev) => ({ ...prev, role: "Livreur" }))}
               >
                 <span className="role-icon">🛵</span>
                 <span className="role-text">Livreur</span>

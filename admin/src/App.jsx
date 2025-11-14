@@ -5,6 +5,10 @@ import { Route, Routes } from "react-router-dom";
 import Add from "./pages/Add/Add";
 import List from "./pages/List/List";
 import Orders from "./pages/Orders/Orders";
+import Users from "./pages/Users/Users";
+import Shop from "./pages/Shop/Shop";
+import Category from "./pages/Category/Category";
+import DeliveryTracking from "./pages/DeliveryTracking/DeliveryTracking";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
@@ -26,6 +30,10 @@ const App = () => {
               <Route path="/add" element={<Add url={url}/>} />
               <Route path="/list" element={<List url={url}/>} />
               <Route path="/orders" element={<Orders url={url}/>} />
+              <Route path="/users" element={<Users url={url}/>} />
+              <Route path="/shop" element={<Shop url={url}/>} />
+              <Route path="/category" element={<Category url={url}/>} />
+              <Route path="/delivery-tracking" element={<DeliveryTracking url={url}/>} />
               <Route path="/" element={<Add url={url}/>} />
             </Routes>
           </div>

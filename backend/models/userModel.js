@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, default:"user" },
     cartData: { type: Object, default: {} },
+    isActive: { type: Boolean, default: true },
   },
   { minimize: false }
 );

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 const Login = ({ url }) => {
   const navigate = useNavigate();
-  const { admin, setAdmin, token, setToken } = useContext(StoreContext);
+  const { admin, setAdmin, token, setToken, setUserRole, setUserName } = useContext(StoreContext);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
     email: "",
@@ -29,8 +29,12 @@ const Login = ({ url }) => {
         if (response.data.role === "admin") {
           setToken(response.data.token);
           setAdmin(true);
+          setUserRole(response.data.role);
+          setUserName(response.data.name || "Admin");
           localStorage.setItem("token", response.data.token);
-          localStorage.setItem("admin", true);
+          localStorage.setItem("admin", JSON.stringify(true));
+          localStorage.setItem("userRole", response.data.role);
+          localStorage.setItem("userName", response.data.name || "Admin");
           toast.success("Login Successfully");
           navigate("/add");
         } else {

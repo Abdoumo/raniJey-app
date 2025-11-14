@@ -12,12 +12,47 @@ const Add = ({url}) => {
   const navigate=useNavigate();
   const {token,admin} = useContext(StoreContext);
   const [image, setImage] = useState(false);
+  const [shops, setShops] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [data, setData] = useState({
     name: "",
     description: "",
     price: "",
-    category: "Salad",
+    category: "",
+    shopId: "",
   });
+
+  const fetchShops = async () => {
+    try {
+      const response = await axios.get(`${url}/api/shop/list`);
+      if (response.data.success) {
+        const shopsList = response.data.data || response.data.shops || [];
+        const activeShops = shopsList.filter(shop => shop.isActive);
+        setShops(activeShops);
+        if (activeShops.length > 0 && !data.shopId) {
+          setData(prev => ({ ...prev, shopId: activeShops[0]._id }));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching shops:", error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${url}/api/category/list`);
+      if (response.data.success) {
+        const categoriesList = response.data.data || response.data.categories || [];
+        const activeCategories = categoriesList.filter(cat => cat.isActive);
+        setCategories(activeCategories);
+        if (activeCategories.length > 0 && !data.category) {
+          setData(prev => ({ ...prev, category: activeCategories[0]._id }));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -32,6 +67,7 @@ const Add = ({url}) => {
     formData.append("description", data.description);
     formData.append("price", Number(data.price));
     formData.append("category", data.category);
+    formData.append("shopId", data.shopId);
     formData.append("image", image);
 
     const response = await axios.post(`${url}/api/food/add`, formData,{headers:{token}});
@@ -40,7 +76,8 @@ const Add = ({url}) => {
         name: "",
         description: "",
         price: "",
-        category: "Salad",
+        category: categories.length > 0 ? categories[0]._id : "",
+        shopId: shops.length > 0 ? shops[0]._id : "",
       });
       setImage(false);
       toast.success(response.data.message);
@@ -53,6 +90,8 @@ const Add = ({url}) => {
       toast.error("Please Login First");
        navigate("/");
     }
+    fetchShops();
+    fetchCategories();
   },[])
   return (
     <div className="add">
@@ -98,21 +137,19 @@ const Add = ({url}) => {
         </div>
         <div className="add-category-price">
           <div className="add-category flex-col">
-            <p>Product category</p>
+            <p>Product category *</p>
             <select
               name="category"
               required
               onChange={onChangeHandler}
               value={data.category}
             >
-              <option value="Salad">Salad</option>
-              <option value="Rolls">Rolls</option>
-              <option value="Deserts">Deserts</option>
-              <option value="Sandwich">Sandwich</option>
-              <option value="Cake">Cake</option>
-              <option value="Pure Veg">Pure Veg</option>
-              <option value="Pasta">Pasta</option>
-              <option value="Noodles">Noodles</option>
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="add-price flex-col">
@@ -126,6 +163,22 @@ const Add = ({url}) => {
               required
             />
           </div>
+        </div>
+        <div className="add-shop flex-col">
+          <p>Shop *</p>
+          <select
+            name="shopId"
+            required
+            onChange={onChangeHandler}
+            value={data.shopId}
+          >
+            <option value="">Select a shop</option>
+            {shops.map((shop) => (
+              <option key={shop._id} value={shop._id}>
+                {shop.name}
+              </option>
+            ))}
+          </select>
         </div>
         <button type="submit" className="add-btn">
           ADD

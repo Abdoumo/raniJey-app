@@ -10,6 +10,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
+import NearestOrders from "./pages/NearestOrders/NearestOrders";
+import TrackOrder from "./pages/TrackOrder/TrackOrder";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -25,6 +27,8 @@ const App = () => {
           <Route path="/order" element={<PlaceOrder />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/myorders" element={<MyOrders />} />
+          <Route path="/nearest-orders" element={<NearestOrders />} />
+          <Route path="/track-order/:orderId" element={<TrackOrder />} />
         </Routes>
       </div>
       <Footer />

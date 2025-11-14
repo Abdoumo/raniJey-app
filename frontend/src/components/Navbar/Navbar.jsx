@@ -59,6 +59,15 @@ const Navbar = ({ setShowLogin }) => {
             my orders
           </Link>
         )}
+        {token && (
+          <Link
+            to="/nearest-orders"
+            onClick={() => setMenu("nearest-orders")}
+            className={menu === "nearest-orders" ? "active" : ""}
+          >
+            nearest orders
+          </Link>
+        )}
       </ul>
       <div className="navbar-right">
         <img src={assets.search_icon} alt="" />
@@ -75,6 +84,7 @@ const Navbar = ({ setShowLogin }) => {
             <img src={assets.profile_icon} alt="" />
             <ul className="nav-profile-dropdown">
               <li onClick={()=>navigate("/myorders")}><img src={assets.bag_icon} alt="" /><p>Orders</p></li>
+              <li onClick={()=>navigate("/nearest-orders")}><img src={assets.parcel_icon} alt="" /><p>Nearest Orders</p></li>
               <hr />
               <li onClick={logout}><img src={assets.logout_icon} alt="" /><p>Logout</p></li>
             </ul>

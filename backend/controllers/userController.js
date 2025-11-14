@@ -12,13 +12,13 @@ const loginUser = async (req, res) => {
     if (!user) {
       return res.json({ success: false, message: "User Doesn't exist" });
     }
-    const isMatch =await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.json({ success: false, message: "Invalid Credentials" });
     }
-    const role=user.role;
+    const role = normalizeRole(user.role);
     const token = createToken(user._id);
-    res.json({ success: true, token,role });
+    res.json({ success: true, token, role });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error" });
@@ -31,10 +31,24 @@ const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET);
 };
 
+// Normalize role - map livreur to delivery
+const normalizeRole = (role) => {
+  if (!role) return "user";
+  const lowerRole = role.toLowerCase();
+  if (lowerRole === "livreur") return "delivery";
+  return lowerRole;
+};
+
+// Validate role
+const isValidRole = (role) => {
+  const validRoles = ["user", "delivery", "admin"];
+  return validRoles.includes(role.toLowerCase());
+};
+
 // register user
 
 const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
   try {
     // checking user is already exist
     const exists = await userModel.findOne({ email });
@@ -53,8 +67,17 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // hashing user password
+    // Normalize and validate role
+    let normalizedRole = "user";
+    if (role) {
+      const normalized = normalizeRole(role);
+      if (!isValidRole(normalized)) {
+        return res.json({ success: false, message: "Invalid role provided" });
+      }
+      normalizedRole = normalized;
+    }
 
+    // hashing user password
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -62,16 +85,154 @@ const registerUser = async (req, res) => {
       name: name,
       email: email,
       password: hashedPassword,
+      role: normalizedRole,
     });
 
     const user = await newUser.save();
-    const role=user.role;
     const token = createToken(user._id);
-    res.json({ success: true, token, role});
+    res.json({ success: true, token, role: user.role });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error" });
   }
 };
 
-export { loginUser, registerUser };
+// Get user profile
+const getUserProfile = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const user = await userModel.findById(userId).select("-password");
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Get user by ID
+const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findById(id).select("-password");
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Update user
+const updateUser = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const { name, email } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // Check if email is already taken by another user
+    if (email && email !== user.email) {
+      const emailExists = await userModel.findOne({ email });
+      if (emailExists) {
+        return res.json({ success: false, message: "Email already in use" });
+      }
+      if (!validator.isEmail(email)) {
+        return res.json({ success: false, message: "Please enter valid email" });
+      }
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    await user.save();
+    const updatedUser = await userModel.findById(userId).select("-password");
+    res.json({ success: true, message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Delete user
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const user = await userModel.findByIdAndDelete(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Get all users (Admin only)
+const getAllUsers = async (req, res) => {
+  try {
+    const adminId = req.body.userId;
+    const admin = await userModel.findById(adminId);
+
+    if (!admin || admin.role !== "admin") {
+      return res.json({ success: false, message: "Unauthorized: Admin access required" });
+    }
+
+    const users = await userModel.find().select("-password");
+    res.json({ success: true, totalUsers: users.length, users });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Toggle user account status (Admin only)
+const toggleUserStatus = async (req, res) => {
+  try {
+    const adminId = req.body.userId;
+    const { userId } = req.params;
+
+    // Check if requester is admin
+    const admin = await userModel.findById(adminId);
+    if (!admin || admin.role !== "admin") {
+      return res.json({ success: false, message: "Unauthorized: Admin access required" });
+    }
+
+    // Find the user to toggle
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // Cannot deactivate admin account
+    if (user.role === "admin") {
+      return res.json({ success: false, message: "Cannot deactivate admin accounts" });
+    }
+
+    // Toggle isActive status
+    user.isActive = !user.isActive;
+    await user.save();
+
+    const updatedUser = await userModel.findById(userId).select("-password");
+    const action = updatedUser.isActive ? "activated" : "deactivated";
+    res.json({
+      success: true,
+      message: `User account ${action} successfully`,
+      user: updatedUser
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+export { loginUser, registerUser, getUserProfile, getUserById, updateUser, deleteUser, getAllUsers, toggleUserStatus };
