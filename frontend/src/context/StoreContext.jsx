@@ -6,11 +6,13 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
-  const url = "http://localhost:4000";
+  const url = "http://backend.rani-jay.com";
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
   const [shops, setShops] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   const addToCart = async (itemId) => {
     if (!cartItems[itemId]) {
@@ -101,17 +103,56 @@ const StoreContextProvider = (props) => {
     }
   };
 
+  const fetchUserRole = async (token) => {
+    try {
+      const response = await axios.get(
+        url + "/api/user/profile",
+        { headers: { token } }
+      );
+      if (response.data.success) {
+        setUserRole(response.data.user.role);
+      }
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(url + "/api/category/list");
+      if (response.data.success) {
+        setCategories(response.data.categories || []);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((cat) => cat._id === categoryId);
+    return category?.name || categoryId;
+  };
+
   useEffect(() => {
     async function loadData() {
       await fetchShops();
       await fetchFoodList();
+      await fetchCategories();
       if (localStorage.getItem("token")) {
-        setToken(localStorage.getItem("token"));
-        await loadCardData(localStorage.getItem("token"));
+        const savedToken = localStorage.getItem("token");
+        setToken(savedToken);
+        await loadCardData(savedToken);
+        await fetchUserRole(savedToken);
       }
     }
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (token && !userRole) {
+      fetchUserRole(token);
+    }
+  }, [token]);
 
   const contextValue = {
     food_list,
@@ -126,6 +167,10 @@ const StoreContextProvider = (props) => {
     shops,
     selectedShop,
     setSelectedShop,
+    userRole,
+    setUserRole,
+    categories,
+    getCategoryName,
   };
   return (
     <StoreContext.Provider value={contextValue}>

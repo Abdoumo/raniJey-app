@@ -1,19 +1,113 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import './NearestOrders.css';
 import { StoreContext } from '../../context/StoreContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const NearestOrders = () => {
   const { url, token } = useContext(StoreContext);
   const navigate = useNavigate();
+  const mapRef = useRef(null);
+  const mapInstance = useRef(null);
+  const markersRef = useRef([]);
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tracking, setTracking] = useState(false);
   const [nearestOrders, setNearestOrders] = useState([]);
   const [error, setError] = useState(null);
   const [acceptingOrderId, setAcceptingOrderId] = useState(null);
+
+  const initializeMap = (lat, lng) => {
+    if (mapInstance.current) return;
+
+    mapInstance.current = L.map(mapRef.current).setView([lat, lng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(mapInstance.current);
+
+    addUserMarker(lat, lng);
+  };
+
+  const addUserMarker = (lat, lng) => {
+    if (!mapInstance.current) return;
+
+    const userIcon = L.divIcon({
+      html: `<div style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4); border: 3px solid white;">📍</div>`,
+      className: 'user-marker',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32],
+    });
+
+    L.marker([lat, lng], { icon: userIcon })
+      .addTo(mapInstance.current)
+      .bindPopup('Your Location');
+  };
+
+  const addOrderMarkers = (orders) => {
+    if (!mapInstance.current) return;
+
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+
+    orders.forEach((order, index) => {
+      const orderLat = order.deliveryLocation?.latitude || order.latitude;
+      const orderLon = order.deliveryLocation?.longitude || order.longitude;
+
+      if (!orderLat || !orderLon) return;
+
+      const orderIcon = L.divIcon({
+        html: `<div style="background: #2196f3; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(33, 150, 243, 0.4); border: 3px solid white; font-size: 14px;">${index + 1}</div>`,
+        className: 'order-marker',
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36],
+      });
+
+      const marker = L.marker([orderLat, orderLon], { icon: orderIcon })
+        .addTo(mapInstance.current)
+        .bindPopup(`
+          <div style="min-width: 200px;">
+            <strong>${order.customerName || 'Unknown'}</strong><br/>
+            Items: ${order.items?.length || 0}<br/>
+            Amount: Da${order.amount || 0}<br/>
+            Distance: ${order.distance?.toFixed(2) || 'N/A'} km
+          </div>
+        `);
+
+      markersRef.current.push(marker);
+    });
+
+    if (orders.length > 0 && location) {
+      const bounds = L.latLngBounds([[location.latitude, location.longitude]]);
+      orders.forEach((order) => {
+        const lat = order.deliveryLocation?.latitude || order.latitude;
+        const lng = order.deliveryLocation?.longitude || order.longitude;
+        if (lat && lng) bounds.extend([lat, lng]);
+      });
+      mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  };
+
+  const updateUserMarkerLocation = (lat, lng) => {
+    if (!mapInstance.current) return;
+
+    markersRef.current.forEach((marker) => marker.remove());
+    mapInstance.current.eachLayer((layer) => {
+      if (layer instanceof L.Marker && layer !== mapInstance.current._userMarker) {
+        mapInstance.current.removeLayer(layer);
+      }
+    });
+    mapInstance.current._userMarker = null;
+
+    addUserMarker(lat, lng);
+    mapInstance.current.setView([lat, lng], mapInstance.current.getZoom());
+  };
 
   const activateGPS = () => {
     setLoading(true);
@@ -28,13 +122,22 @@ const NearestOrders = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        setLocation({
+        const newLocation = {
           latitude,
           longitude,
           accuracy,
           timestamp: new Date().toISOString(),
-        });
-        
+        };
+        setLocation(newLocation);
+
+        if (!mapInstance.current) {
+          setTimeout(() => {
+            if (mapRef.current) {
+              initializeMap(latitude, longitude);
+            }
+          }, 0);
+        }
+
         sendLocationToBackend(latitude, longitude, accuracy);
         setLoading(false);
       },
@@ -93,12 +196,18 @@ const NearestOrders = () => {
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        setLocation({
+        const newLocation = {
           latitude,
           longitude,
           accuracy,
           timestamp: new Date().toISOString(),
-        });
+        };
+        setLocation(newLocation);
+
+        if (mapInstance.current) {
+          updateUserMarkerLocation(latitude, longitude);
+        }
+
         sendLocationToBackend(latitude, longitude, accuracy);
       },
       (error) => {
@@ -221,6 +330,7 @@ const NearestOrders = () => {
         if (!endpointUsed.includes('nearest') || usedMockData) {
           const nearbyOrders = filterOrdersByDistance(orders, location);
           setNearestOrders(nearbyOrders);
+          addOrderMarkers(nearbyOrders);
 
           if (nearbyOrders.length === 0) {
             setError('No nearby orders found. Try moving to a different location or activating more precise GPS.');
@@ -234,6 +344,7 @@ const NearestOrders = () => {
           }
         } else {
           setNearestOrders(orders);
+          addOrderMarkers(orders);
 
           if (orders.length === 0) {
             setError('No nearby orders found');
@@ -395,6 +506,20 @@ const NearestOrders = () => {
             <button className="fetch-orders-btn" onClick={fetchNearestOrders}>
               🔍 Find Closest Orders
             </button>
+          </div>
+        )}
+
+        {location && (
+          <div className="map-container">
+            <div
+              ref={mapRef}
+              style={{
+                height: '400px',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+              }}
+            />
           </div>
         )}
 

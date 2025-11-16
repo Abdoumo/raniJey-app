@@ -128,7 +128,7 @@ const TrackOrder = () => {
   // Connect to WebSocket for real-time location updates
   const connectWebSocket = () => {
     try {
-      const socket = new WebSocket(`ws://localhost:4000`);
+      const socket = new WebSocket(`ws://backend.rani-jay.com`);
 
       socket.onopen = () => {
         console.log('WebSocket connected');

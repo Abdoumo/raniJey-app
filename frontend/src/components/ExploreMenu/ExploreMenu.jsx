@@ -32,7 +32,7 @@ const ExploreMenu = ({ category, setCategory }) => {
                 {shop.image && (
                   <img
                     className={selectedShop === shop._id ? "active" : ""}
-                    src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/images/${shop.image}`}
+                    src={`${import.meta.env.VITE_API_URL || "http://backend.rani-jay.com"}/images/${shop.image}`}
                     alt={shop.name}
                     onError={(e) => {
                       e.target.src = "https://via.placeholder.com/150";

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 const PlaceOrder = () => {
   const navigate= useNavigate();
 
-  const { getTotalCartAmount, token, food_list, cartItems, url } =
+  const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems } =
     useContext(StoreContext);
   const [data, setData] = useState({
     firstName: "",
@@ -30,26 +30,68 @@ const PlaceOrder = () => {
 
   const placeOrder = async (event) => {
     event.preventDefault();
+
     let orderItems = [];
-    food_list.map((item) => {
+    food_list.forEach((item) => {
       if (cartItems[item._id] > 0) {
-        let itemInfo = item;
-        itemInfo["quantity"] = cartItems[item._id];
-        orderItems.push(itemInfo);
+        orderItems.push({
+          _id: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: cartItems[item._id],
+          image: item.image,
+        });
       }
     });
+
+    if (orderItems.length === 0) {
+      toast.error("Cart is empty");
+      return;
+    }
+
     let orderData = {
       address: data,
       items: orderItems,
       amount: getTotalCartAmount() + 2,
     };
-    
-    let response= await axios.post(url+"/api/order/place",orderData,{headers:{token}});
-    if(response.data.success){
-      const {session_url}=response.data;
-      window.location.replace(session_url);
-    }else{
-      toast.error("Errors!")
+
+    console.log("Sending order data:", orderData);
+
+    try {
+      let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
+      console.log("Order response:", response.data);
+
+      if (response.data.success) {
+        const { session_url } = response.data;
+        console.log("Session URL:", session_url);
+
+        setCartItems({});
+        toast.success("Order placed successfully! Redirecting to payment...");
+
+        if (session_url) {
+          setTimeout(() => {
+            window.location.replace(session_url);
+          }, 1500);
+        } else {
+          console.warn("No session_url in response, navigating to home");
+          setTimeout(() => {
+            navigate("/");
+          }, 1500);
+        }
+      } else {
+        const errorMsg = response.data.message || "Failed to place order";
+        console.error("Order error:", errorMsg);
+        console.error("Full response data:", JSON.stringify(response.data, null, 2));
+        toast.error(errorMsg);
+      }
+    } catch (error) {
+      console.error("Error placing order:", error.message);
+      console.error("Full error response:", JSON.stringify(error.response?.data, null, 2));
+      console.error("Error status:", error.response?.status);
+      console.error("Error config:", error.config);
+      const errorMessage = error.response?.data?.message || error.message || "Error placing order";
+      console.error("Error message being shown:", errorMessage);
+      toast.error(errorMessage);
     }
   };
 

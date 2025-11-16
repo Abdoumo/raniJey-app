@@ -15,7 +15,7 @@ import Login from "./components/Login/Login";
 import { StoreContext } from "./context/StoreContext";
 
 const App = () => {
-  const url = "http://localhost:4000";
+  const url = "https://backend.rani-jay.com";
   const { admin, token } = useContext(StoreContext);
 
   return (

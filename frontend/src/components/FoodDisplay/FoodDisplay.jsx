@@ -4,7 +4,7 @@ import { StoreContext } from "../../context/StoreContext";
 import FoodItem from "../FoodItem/FoodItem";
 
 const FoodDisplay = ({ category, setCategory }) => {
-  const { food_list, selectedShop } = useContext(StoreContext);
+  const { food_list, selectedShop, getCategoryName } = useContext(StoreContext);
   const [localCategory, setLocalCategory] = useState("All");
 
   const activeCategory = setCategory ? category : localCategory;
@@ -15,9 +15,18 @@ const FoodDisplay = ({ category, setCategory }) => {
   }, [food_list, selectedShop]);
 
   const categories = useMemo(() => {
-    const uniqueCategories = new Set(shopFoods.map((item) => item.category));
-    return Array.from(uniqueCategories).sort();
-  }, [shopFoods]);
+    const uniqueCategories = new Map();
+    shopFoods.forEach((item) => {
+      const catId = item.category;
+      if (catId && !uniqueCategories.has(catId)) {
+        const catName = getCategoryName(catId);
+        uniqueCategories.set(catId, catName);
+      }
+    });
+    return Array.from(uniqueCategories.entries())
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map(([id, name]) => ({ id, name }));
+  }, [shopFoods, getCategoryName]);
 
   const filteredFoods = useMemo(() => {
     if (activeCategory === "All") {
@@ -40,11 +49,11 @@ const FoodDisplay = ({ category, setCategory }) => {
           </button>
           {categories.map((cat) => (
             <button
-              key={cat}
-              className={`category-btn ${activeCategory === cat ? "active" : ""}`}
-              onClick={() => handleCategoryChange(cat)}
+              key={cat.id}
+              className={`category-btn ${activeCategory === cat.id ? "active" : ""}`}
+              onClick={() => handleCategoryChange(cat.id)}
             >
-              {cat}
+              {cat.name}
             </button>
           ))}
         </div>
@@ -52,9 +61,9 @@ const FoodDisplay = ({ category, setCategory }) => {
 
       <div className="food-display-list">
         {filteredFoods && filteredFoods.length > 0 ? (
-          filteredFoods.map((item, index) => (
+          filteredFoods.map((item) => (
             <FoodItem
-              key={index}
+              key={item._id}
               id={item._id}
               name={item.name}
               description={item.description}

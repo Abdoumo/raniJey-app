@@ -1,7 +1,7 @@
 # User CRUD API Documentation
 
 ## Base URL
-`http://localhost:4000/api/user`
+`http://backend.rani-jay.com/api/user`
 
 ---
 
@@ -325,7 +325,7 @@ PATCH /toggle-status/507f1f77bcf86cd799439011
 # Shop Management API
 
 ## Base URL
-`http://localhost:4000/api/shop`
+`http://backend.rani-jay.com/api/shop`
 
 ---
 
@@ -567,7 +567,7 @@ GET /507f1f77bcf86cd799439011
 
 ### Create Shop (Admin)
 ```bash
-curl -X POST http://localhost:4000/api/shop/create \
+curl -X POST http://backend.rani-jay.com/api/shop/create \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=John's Restaurant" \
   -F "type=restaurant" \
@@ -579,7 +579,7 @@ curl -X POST http://localhost:4000/api/shop/create \
 
 ### Update Shop (Admin)
 ```bash
-curl -X PUT http://localhost:4000/api/shop/507f1f77bcf86cd799439011 \
+curl -X PUT http://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=John's Italian Restaurant" \
   -F "description=Updated description"
@@ -587,29 +587,29 @@ curl -X PUT http://localhost:4000/api/shop/507f1f77bcf86cd799439011 \
 
 ### Delete Shop (Admin)
 ```bash
-curl -X DELETE http://localhost:4000/api/shop/507f1f77bcf86cd799439011 \
+curl -X DELETE http://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Toggle Shop Status (Admin)
 ```bash
-curl -X PATCH http://localhost:4000/api/shop/toggle-status/507f1f77bcf86cd799439011 \
+curl -X PATCH http://backend.rani-jay.com/api/shop/toggle-status/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### List All Shops (Public)
 ```bash
-curl http://localhost:4000/api/shop/list
+curl http://backend.rani-jay.com/api/shop/list
 ```
 
 ### List Restaurants Only (Public)
 ```bash
-curl http://localhost:4000/api/shop/list?type=restaurant
+curl http://backend.rani-jay.com/api/shop/list?type=restaurant
 ```
 
 ### Get Shop by ID (Public)
 ```bash
-curl http://localhost:4000/api/shop/507f1f77bcf86cd799439011
+curl http://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011
 ```
 
 ---
@@ -657,7 +657,7 @@ GET /507f1f77bcf86cd799439011
 
 ### Register
 ```bash
-curl -X POST http://localhost:4000/api/user/register \
+curl -X POST http://backend.rani-jay.com/api/user/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "John Doe",
@@ -668,7 +668,7 @@ curl -X POST http://localhost:4000/api/user/register \
 
 ### Login
 ```bash
-curl -X POST http://localhost:4000/api/user/login \
+curl -X POST http://backend.rani-jay.com/api/user/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john@gmail.com",
@@ -678,13 +678,13 @@ curl -X POST http://localhost:4000/api/user/login \
 
 ### Get Profile (Protected)
 ```bash
-curl -X GET http://localhost:4000/api/user/profile \
+curl -X GET http://backend.rani-jay.com/api/user/profile \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Update Profile (Protected)
 ```bash
-curl -X PUT http://localhost:4000/api/user/profile \
+curl -X PUT http://backend.rani-jay.com/api/user/profile \
   -H "token: YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -695,24 +695,24 @@ curl -X PUT http://localhost:4000/api/user/profile \
 
 ### Delete Account (Protected)
 ```bash
-curl -X DELETE http://localhost:4000/api/user/profile \
+curl -X DELETE http://backend.rani-jay.com/api/user/profile \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Get User by ID (Public)
 ```bash
-curl http://localhost:4000/api/user/507f1f77bcf86cd799439011
+curl http://backend.rani-jay.com/api/user/507f1f77bcf86cd799439011
 ```
 
 ### Get All Users (Admin Only)
 ```bash
-curl -X GET http://localhost:4000/api/user/list/all \
+curl -X GET http://backend.rani-jay.com/api/user/list/all \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Toggle User Account Status (Admin Only)
 ```bash
-curl -X PATCH http://localhost:4000/api/user/toggle-status/507f1f77bcf86cd799439011 \
+curl -X PATCH http://backend.rani-jay.com/api/user/toggle-status/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
@@ -747,7 +747,7 @@ curl -X PATCH http://localhost:4000/api/user/toggle-status/507f1f77bcf86cd799439
 # Food Management API
 
 ## Base URL
-`http://localhost:4000/api/food`
+`http://backend.rani-jay.com/api/food`
 
 ---
 
@@ -881,7 +881,7 @@ Content-Type: application/json
 
 ### Add Food (Admin)
 ```bash
-curl -X POST http://localhost:4000/api/food/add \
+curl -X POST http://backend.rani-jay.com/api/food/add \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=Pasta Carbonara" \
   -F "description=Creamy Italian pasta" \
@@ -893,17 +893,17 @@ curl -X POST http://localhost:4000/api/food/add \
 
 ### List All Foods
 ```bash
-curl http://localhost:4000/api/food/list
+curl http://backend.rani-jay.com/api/food/list
 ```
 
 ### Get Foods by Shop
 ```bash
-curl http://localhost:4000/api/food/shop/507f1f77bcf86cd799439011
+curl http://backend.rani-jay.com/api/food/shop/507f1f77bcf86cd799439011
 ```
 
 ### Remove Food (Admin)
 ```bash
-curl -X POST http://localhost:4000/api/food/remove \
+curl -X POST http://backend.rani-jay.com/api/food/remove \
   -H "token: ADMIN_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"id": "507f1f77bcf86cd799439021"}'
@@ -916,7 +916,7 @@ curl -X POST http://localhost:4000/api/food/remove \
 # Product Category API
 
 ## Base URL
-`http://localhost:4000/api/category`
+`http://backend.rani-jay.com/api/category`
 
 ---
 
@@ -1125,7 +1125,7 @@ GET /507f1f77bcf86cd799439031
 
 ### Create Category (Admin)
 ```bash
-curl -X POST http://localhost:4000/api/category/create \
+curl -X POST http://backend.rani-jay.com/api/category/create \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=Pasta" \
   -F "description=All types of pasta dishes" \
@@ -1134,7 +1134,7 @@ curl -X POST http://localhost:4000/api/category/create \
 
 ### Update Category (Admin)
 ```bash
-curl -X PUT http://localhost:4000/api/category/507f1f77bcf86cd799439031 \
+curl -X PUT http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031 \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=Italian Pasta" \
   -F "description=Updated description"
@@ -1142,24 +1142,24 @@ curl -X PUT http://localhost:4000/api/category/507f1f77bcf86cd799439031 \
 
 ### Delete Category (Admin)
 ```bash
-curl -X DELETE http://localhost:4000/api/category/507f1f77bcf86cd799439031 \
+curl -X DELETE http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Toggle Category Status (Admin)
 ```bash
-curl -X PATCH http://localhost:4000/api/category/toggle-status/507f1f77bcf86cd799439031 \
+curl -X PATCH http://backend.rani-jay.com/api/category/toggle-status/507f1f77bcf86cd799439031 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### List All Categories (Public)
 ```bash
-curl http://localhost:4000/api/category/list
+curl http://backend.rani-jay.com/api/category/list
 ```
 
 ### Get Category by ID (Public)
 ```bash
-curl http://localhost:4000/api/category/507f1f77bcf86cd799439031
+curl http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031
 ```
 
 ---
@@ -1169,10 +1169,10 @@ curl http://localhost:4000/api/category/507f1f77bcf86cd799439031
 # Real-Time Location Tracking API
 
 ## Base URL
-`http://localhost:4000/api/location`
+`http://backend.rani-jay.com/api/location`
 
 ## WebSocket Connection
-`ws://localhost:4000` (Socket.io)
+`ws://backend.rani-jay.com` (Socket.io)
 
 ---
 
@@ -1518,7 +1518,7 @@ socket.on('error', (error) => {
 
 ### Update Location
 ```bash
-curl -X POST http://localhost:4000/api/location/update \
+curl -X POST http://backend.rani-jay.com/api/location/update \
   -H "token: YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1530,44 +1530,44 @@ curl -X POST http://localhost:4000/api/location/update \
 
 ### Get User Location
 ```bash
-curl -X GET http://localhost:4000/api/location/user/507f1f77bcf86cd799439011 \
+curl -X GET http://backend.rani-jay.com/api/location/user/507f1f77bcf86cd799439011 \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Get All Active Delivery Locations (Admin)
 ```bash
-curl -X GET http://localhost:4000/api/location/delivery/active/list \
+curl -X GET http://backend.rani-jay.com/api/location/delivery/active/list \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Auto-Match Delivery (Admin)
 ```bash
-curl -X POST http://localhost:4000/api/location/match/507f1f77bcf86cd799439050 \
+curl -X POST http://backend.rani-jay.com/api/location/match/507f1f77bcf86cd799439050 \
   -H "token: ADMIN_JWT_TOKEN" \
   -H "Content-Type: application/json"
 ```
 
 ### Get Order Delivery Location (Customer)
 ```bash
-curl -X GET http://localhost:4000/api/location/order/507f1f77bcf86cd799439050 \
+curl -X GET http://backend.rani-jay.com/api/location/order/507f1f77bcf86cd799439050 \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Get Location History (Admin)
 ```bash
-curl -X GET "http://localhost:4000/api/location/history/507f1f77bcf86cd799439020?days=7" \
+curl -X GET "http://backend.rani-jay.com/api/location/history/507f1f77bcf86cd799439020?days=7" \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Get Order Location History (Customer/Admin)
 ```bash
-curl -X GET http://localhost:4000/api/location/order-history/507f1f77bcf86cd799439050 \
+curl -X GET http://backend.rani-jay.com/api/location/order-history/507f1f77bcf86cd799439050 \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Toggle Location Sharing
 ```bash
-curl -X PATCH http://localhost:4000/api/location/sharing/toggle \
+curl -X PATCH http://backend.rani-jay.com/api/location/sharing/toggle \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
@@ -1577,7 +1577,7 @@ curl -X PATCH http://localhost:4000/api/location/sharing/toggle \
 
 ```javascript
 // Connect to WebSocket
-const socket = io('http://localhost:4000');
+const socket = io('http://backend.rani-jay.com');
 
 // Join tracking
 socket.emit('join-tracking', userId);
