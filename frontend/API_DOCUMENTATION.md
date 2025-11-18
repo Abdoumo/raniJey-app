@@ -6,7 +6,7 @@ This document describes the API requirements for real-time order tracking with l
 ## Architecture
 - **Protocol**: WebSocket (primary), HTTP (fallback)
 - **Base URL**: `ws://localhost:4000` (WebSocket)
-- **HTTP Base URL**: `http://localhost:4000` (Fallback)
+- **HTTP Base URL**: `https://backend.rani-jay.com` (Fallback)
 
 ---
 

@@ -1,6 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/auth.js";
-import { listOrders, placeOrder, updateStatus, userOrders, verifyOrder, getNearestOrders, getAvailableOrders, getPendingOrders } from "../controllers/orderController.js";
+import { listOrders, placeOrder, updateStatus, userOrders, verifyOrder, getNearestOrders, getAvailableOrders, getPendingOrders, acceptOrder, getOrder, markDelivered } from "../controllers/orderController.js";
 
 const orderRouter = express.Router();
 
@@ -13,9 +13,16 @@ orderRouter.post("/status", authMiddleware, updateStatus);
 orderRouter.post("/userorders", authMiddleware, userOrders);
 orderRouter.get("/list", authMiddleware, listOrders);
 
-// Delivery person order discovery
-orderRouter.get("/nearest", getNearestOrders);
-orderRouter.get("/available", getAvailableOrders);
-orderRouter.get("/pending", getPendingOrders);
+// Delivery person order discovery and management - MUST come before /:orderId route
+orderRouter.get("/nearest", authMiddleware, getNearestOrders);
+orderRouter.get("/available", authMiddleware, getAvailableOrders);
+orderRouter.get("/pending", authMiddleware, getPendingOrders);
+
+// Order details - generic route goes last
+orderRouter.get("/:orderId", authMiddleware, getOrder);
+
+// Order actions
+orderRouter.post("/accept", authMiddleware, acceptOrder);
+orderRouter.post("/delivered", authMiddleware, markDelivered);
 
 export default orderRouter;

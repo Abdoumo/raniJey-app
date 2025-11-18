@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
+import MapPicker from "../../components/MapPicker/MapPicker";
 
 const Shop = ({ url }) => {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ const Shop = ({ url }) => {
     description: "",
     address: "",
     phone: "",
+    latitude: null,
+    longitude: null,
   });
   const [togglingId, setTogglingId] = useState(null);
 
@@ -62,6 +65,8 @@ const Shop = ({ url }) => {
       description: "",
       address: "",
       phone: "",
+      latitude: null,
+      longitude: null,
     });
     setImage(false);
     setEditingShopId(null);
@@ -97,7 +102,9 @@ const Shop = ({ url }) => {
         description: formData.description,
         address: formData.address,
         phone: formData.phone,
-        image: imageData
+        image: imageData,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
       };
 
       const response = await axios.post(
@@ -128,6 +135,8 @@ const Shop = ({ url }) => {
       description: shop.description,
       address: shop.address,
       phone: shop.phone,
+      latitude: shop.location?.latitude || null,
+      longitude: shop.location?.longitude || null,
     });
     setImage(false);
     setShowAddForm(true);
@@ -162,7 +171,9 @@ const Shop = ({ url }) => {
         description: formData.description,
         address: formData.address,
         phone: formData.phone,
-        image: imageData
+        image: imageData,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
       };
 
       const response = await axios.put(
@@ -363,6 +374,21 @@ const Shop = ({ url }) => {
                   required
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Shop Location</label>
+              <MapPicker
+                latitude={formData.latitude}
+                longitude={formData.longitude}
+                onLocationSelect={(lat, lng) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    latitude: lat,
+                    longitude: lng,
+                  }));
+                }}
+              />
             </div>
 
             <div className="form-actions">

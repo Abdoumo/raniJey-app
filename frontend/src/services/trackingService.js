@@ -21,6 +21,11 @@ class TrackingService {
       return Promise.resolve();
     }
 
+    // Validate that required parameters are present
+    if (!token || !userId) {
+      return Promise.reject(new Error('Token and userId are required for WebSocket connection'));
+    }
+
     console.log('Connecting to Socket.io server at:', baseUrl);
 
     return new Promise((resolve, reject) => {
@@ -90,13 +95,18 @@ class TrackingService {
           // Will retry automatically due to reconnection settings
         })
 
-        // Set a timeout for connection
+        // Set a timeout for connection (increased to 20 seconds for slow networks)
         const connectionTimeout = setTimeout(() => {
           if (!this.isConnected) {
-            console.warn('Socket.io connection timeout');
-            reject(new Error('Socket.io connection timeout - backend may not be available'));
+            console.warn('Socket.io connection timeout - backend may not be available');
+            // Don't reject - let the fallback HTTP work instead
+            this.emit('error', {
+              message: 'Real-time connection unavailable (using HTTP fallback)',
+              details: 'WebSocket connection timeout',
+              critical: false,
+            });
           }
-        }, 10000);
+        }, 20000);
 
         // Listen for successful connection to clear timeout
         const originalEmit = this.emit.bind(this);

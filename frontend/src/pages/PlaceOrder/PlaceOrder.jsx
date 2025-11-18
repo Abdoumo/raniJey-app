@@ -51,49 +51,70 @@ const PlaceOrder = () => {
       return;
     }
 
-    let orderData = {
-      address: data,
-      items: orderItems,
-      amount: getTotalCartAmount() + 2,
-    };
-
-    console.log("Sending order data:", orderData);
-
     try {
+      let deliveryLocation = null;
+
+      if (navigator.geolocation) {
+        deliveryLocation = await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
+            },
+            (error) => {
+              console.warn("GPS not available:", error.message);
+              resolve(null);
+            },
+            { timeout: 15000, maximumAge: 0, enableHighAccuracy: true }
+          );
+        });
+      }
+
+      let orderData = {
+        address: data,
+        items: orderItems,
+        amount: getTotalCartAmount() + 2,
+      };
+
+      if (deliveryLocation) {
+        orderData.deliveryLocation = deliveryLocation;
+      }
+
+      console.log("Sending order data:", JSON.stringify(orderData, null, 2));
+      console.log("Token present:", !!token);
+      console.log("Token value:", token ? `${token.substring(0, 20)}...` : "NO TOKEN");
+
+      console.log("Request headers:", { token });
+      console.log("API endpoint:", url + "/api/order/place");
+
       let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
-      console.log("Order response:", response.data);
+      console.log("Order response status:", response.status);
+      console.log("Order response data:", response.data);
 
       if (response.data.success) {
-        const { session_url } = response.data;
-        console.log("Session URL:", session_url);
-
         setCartItems({});
-        toast.success("Order placed successfully! Redirecting to payment...");
+        toast.success("Order placed successfully!");
 
-        if (session_url) {
-          setTimeout(() => {
-            window.location.replace(session_url);
-          }, 1500);
-        } else {
-          console.warn("No session_url in response, navigating to home");
-          setTimeout(() => {
-            navigate("/");
-          }, 1500);
-        }
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
       } else {
         const errorMsg = response.data.message || "Failed to place order";
         console.error("Order error:", errorMsg);
         console.error("Full response data:", JSON.stringify(response.data, null, 2));
-        toast.error(errorMsg);
+        toast.error(`Order Error: ${errorMsg}`);
       }
     } catch (error) {
-      console.error("Error placing order:", error.message);
-      console.error("Full error response:", JSON.stringify(error.response?.data, null, 2));
+      console.error("Axios error caught:", error.message);
       console.error("Error status:", error.response?.status);
-      console.error("Error config:", error.config);
+      console.error("Error response data:", error.response?.data);
+      console.error("Error headers:", error.response?.headers);
+
       const errorMessage = error.response?.data?.message || error.message || "Error placing order";
       console.error("Error message being shown:", errorMessage);
-      toast.error(errorMessage);
+      toast.error(`Error: ${errorMessage}`);
     }
   };
 

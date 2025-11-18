@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Navbar from "./components/Navbar/Navbar";
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home/Home";
@@ -13,11 +13,14 @@ import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import NearestOrders from "./pages/NearestOrders/NearestOrders";
 import TrackOrder from "./pages/TrackOrder/TrackOrder";
+import OrderTrackingMap from "./pages/OrderTrackingMap/OrderTrackingMap";
 import { StoreContext } from "./context/StoreContext";
+import { useAutoTracking } from "./hooks/useAutoTracking";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
-  const { showNoteModal, setShowNoteModal, pendingItemId, confirmAddToCart, food_list } = useContext(StoreContext);
+  const { showNoteModal, setShowNoteModal, pendingItemId, confirmAddToCart, food_list, token } = useContext(StoreContext);
+  const { requestLocationPermission, error: locationError } = useAutoTracking();
 
   const getPendingItemName = () => {
     if (pendingItemId) {
@@ -26,6 +29,13 @@ const App = () => {
     }
     return "Item";
   };
+
+  // Auto-request location permission for logged-in users
+  useEffect(() => {
+    if (token) {
+      requestLocationPermission();
+    }
+  }, [token, requestLocationPermission]);
 
   return (
     <>
@@ -48,6 +58,7 @@ const App = () => {
           <Route path="/myorders" element={<MyOrders />} />
           <Route path="/nearest-orders" element={<NearestOrders />} />
           <Route path="/track-order/:orderId" element={<TrackOrder />} />
+          <Route path="/order-tracking/:orderId" element={<OrderTrackingMap />} />
         </Routes>
       </div>
       <Footer />

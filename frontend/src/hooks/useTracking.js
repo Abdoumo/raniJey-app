@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import trackingService from '../services/trackingService';
 
 export const useTracking = (url, token, userId, userRole) => {
@@ -9,7 +9,11 @@ export const useTracking = (url, token, userId, userRole) => {
   const listenerRefsRef = useRef({});
 
   useEffect(() => {
-    if (!token || !userId) return;
+    // Skip if token or userId is missing
+    if (!token || !userId) {
+      setIsConnected(false);
+      return;
+    }
 
     const handleConnect = () => {
       setIsConnected(true);

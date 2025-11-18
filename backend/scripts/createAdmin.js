@@ -17,7 +17,7 @@ const userModel = mongoose.model.user || mongoose.model("user", userSchema);
 
 const createAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect("mongodb://127.0.0.1:27017/rani-jay");
     console.log("MongoDB Connected");
 
     const adminEmail = "admin@RaniJay.com";

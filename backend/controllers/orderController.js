@@ -1,8 +1,5 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Haversine formula to calculate distance between two coordinates (in km)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -16,50 +13,36 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 // placing user order for frontend
 const placeOrder = async (req, res) => {
-  const frontend_url = "https://food-delivery-frontend-s2l9.onrender.com";
   try {
+    if (!req.body.userId) {
+      return res.json({ success: false, message: "User ID not found. Please login again." });
+    }
+
+    if (!req.body.items || req.body.items.length === 0) {
+      return res.json({ success: false, message: "Cart is empty" });
+    }
+
+    if (!req.body.address) {
+      return res.json({ success: false, message: "Address is required" });
+    }
+
     const newOrder = new orderModel({
       userId: req.body.userId,
       items: req.body.items,
       amount: req.body.amount,
       address: req.body.address,
+      payment: true, // COD - mark as approved for delivery (payment collected on delivery)
+      status: "Pending",
+      deliveryLocation: req.body.deliveryLocation || null,
     });
     await newOrder.save();
     await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
 
-    const line_items = req.body.items.map((item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.name,
-        },
-        unit_amount: item.price * 100,
-      },
-      quantity: item.quantity,
-    }));
-
-    line_items.push({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "Delivery Charges",
-        },
-        unit_amount: 2 * 100,
-      },
-      quantity: 1,
-    });
-
-    const session = await stripe.checkout.sessions.create({
-      line_items: line_items,
-      mode: "payment",
-      success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-      cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
-    });
-
-    res.json({ success: true, session_url: session.url });
+    res.json({ success: true, message: "Order placed successfully. Please pay on delivery.", orderId: newOrder._id });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Order placement error:", error);
+    const errorMessage = error.message || "Failed to create order";
+    res.json({ success: false, message: errorMessage });
   }
 };
 
@@ -128,24 +111,43 @@ const updateStatus = async (req, res) => {
 const getNearestOrders = async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
+    const deliveryPersonId = req.body.userId;
 
     if (!latitude || !longitude) {
       return res.json({ success: false, message: "Latitude and longitude required" });
     }
 
+    // Verify delivery person role (optional - can work without auth, but better with it)
+    if (deliveryPersonId) {
+      const user = await userModel.findById(deliveryPersonId);
+      if (user && user.role !== "delivery" && user.role !== "livreur") {
+        return res.json({ success: false, message: "Only delivery personnel can view orders" });
+      }
+    }
+
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
 
+    console.log(`[getNearestOrders] Delivery person at: ${lat}, ${lon}`);
+
     // Get all available orders (not assigned, paid, not delivered/cancelled)
+    // Include orders with or without delivery location
     const orders = await orderModel.find({
       assignedDeliveryPerson: null,
       payment: true,
       status: { $nin: ["Delivered", "Cancelled"] },
-      deliveryLocation: { $exists: true, $ne: null },
-    }).limit(20);
+    }).sort({ date: -1 }).limit(50);
 
-    // Calculate distances and sort
-    const ordersWithDistance = orders
+    console.log(`[getNearestOrders] Found ${orders.length} total available orders`);
+
+    // Separate and process orders with and without delivery location
+    const ordersWithLocation = orders.filter(o => o.deliveryLocation && o.deliveryLocation.latitude && o.deliveryLocation.longitude);
+    const ordersWithoutLocation = orders.filter(o => !o.deliveryLocation || !o.deliveryLocation.latitude || !o.deliveryLocation.longitude);
+
+    console.log(`[getNearestOrders] Orders with location: ${ordersWithLocation.length}, without location: ${ordersWithoutLocation.length}`);
+
+    // Calculate distances for orders with location and sort by distance
+    const ordersWithDistance = ordersWithLocation
       .map((order) => ({
         ...order.toObject(),
         distance: calculateDistance(
@@ -155,12 +157,22 @@ const getNearestOrders = async (req, res) => {
           order.deliveryLocation.longitude
         ),
       }))
+      .filter((order) => order.distance <= 50) // Filter to 50km radius
       .sort((a, b) => a.distance - b.distance);
+
+    // Orders without location (address only) - shown after distance-sorted orders
+    const ordersWithoutDistanceInfo = ordersWithoutLocation.map((order) => ({
+      ...order.toObject(),
+      distance: null,
+    }));
+
+    // Combine: distance-based orders first, then address-only orders
+    const allOrders = [...ordersWithDistance, ...ordersWithoutDistanceInfo].slice(0, 20);
 
     res.json({
       success: true,
-      totalOrders: ordersWithDistance.length,
-      orders: ordersWithDistance,
+      totalOrders: allOrders.length,
+      orders: allOrders,
     });
   } catch (error) {
     console.log(error);
@@ -171,6 +183,16 @@ const getNearestOrders = async (req, res) => {
 // Get all available orders (not yet assigned)
 const getAvailableOrders = async (req, res) => {
   try {
+    const deliveryPersonId = req.body.userId;
+
+    // Verify delivery person role
+    if (deliveryPersonId) {
+      const user = await userModel.findById(deliveryPersonId);
+      if (!user || (user.role !== "delivery" && user.role !== "livreur")) {
+        return res.json({ success: false, message: "Only delivery personnel can view orders" });
+      }
+    }
+
     const orders = await orderModel.find({
       assignedDeliveryPerson: null,
       payment: true,
@@ -193,6 +215,16 @@ const getAvailableOrders = async (req, res) => {
 // Get all pending orders (not yet delivered)
 const getPendingOrders = async (req, res) => {
   try {
+    const deliveryPersonId = req.body.userId;
+
+    // Verify delivery person role
+    if (deliveryPersonId) {
+      const user = await userModel.findById(deliveryPersonId);
+      if (!user || (user.role !== "delivery" && user.role !== "livreur")) {
+        return res.json({ success: false, message: "Only delivery personnel can view orders" });
+      }
+    }
+
     const orders = await orderModel.find({
       status: { $nin: ["Delivered", "Cancelled"] },
       payment: true,
@@ -211,4 +243,145 @@ const getPendingOrders = async (req, res) => {
   }
 };
 
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getNearestOrders, getAvailableOrders, getPendingOrders };
+// Accept order by delivery person
+const acceptOrder = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const deliveryPersonId = req.body.userId;
+
+    if (!orderId) {
+      return res.json({ success: false, message: "Order ID is required" });
+    }
+
+    if (!deliveryPersonId) {
+      return res.json({ success: false, message: "Delivery person not identified" });
+    }
+
+    // Get the delivery person's user record
+    const deliveryPerson = await userModel.findById(deliveryPersonId);
+    if (!deliveryPerson) {
+      return res.json({ success: false, message: "Delivery person not found" });
+    }
+
+    // Check if user is a delivery person
+    if (deliveryPerson.role !== "delivery" && deliveryPerson.role !== "livreur") {
+      return res.json({ success: false, message: "Only delivery personnel can accept orders" });
+    }
+
+    // Get the order
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+
+    // Check if order is available
+    if (order.assignedDeliveryPerson) {
+      return res.json({ success: false, message: "Order has already been assigned to another delivery person" });
+    }
+
+    // Check if order has been paid
+    if (!order.payment) {
+      return res.json({ success: false, message: "Order payment not confirmed" });
+    }
+
+    // Check if order is not already delivered or cancelled
+    if (order.status === "Delivered" || order.status === "Cancelled") {
+      return res.json({ success: false, message: `Order has already been ${order.status.toLowerCase()}` });
+    }
+
+    // Update the order with delivery person assignment
+    order.assignedDeliveryPerson = deliveryPersonId;
+    order.assignedAt = new Date();
+    order.status = "Accepted";
+
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Order accepted successfully",
+      order: order,
+    });
+  } catch (error) {
+    console.error("Accept order error:", error);
+    res.json({ success: false, message: "Error accepting order" });
+  }
+};
+
+// Get specific order details
+const getOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.body.userId;
+
+    // Validate orderId is a valid MongoDB ObjectId
+    if (!orderId || typeof orderId !== 'string' || orderId.length !== 24) {
+      return res.json({ success: false, message: "Invalid order ID" });
+    }
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+
+    // Check authorization: customer, assigned delivery person, or admin
+    const user = await userModel.findById(userId);
+    const isCustomer = order.userId === userId;
+    const isDeliveryPerson = order.assignedDeliveryPerson?.toString() === userId;
+    const isAdmin = user && user.role === "admin";
+
+    if (!isCustomer && !isDeliveryPerson && !isAdmin) {
+      return res.json({ success: false, message: "Unauthorized access to order" });
+    }
+
+    res.json({
+      success: true,
+      order: order,
+    });
+  } catch (error) {
+    console.error("Get order error:", error);
+    res.json({ success: false, message: "Error fetching order" });
+  }
+};
+
+// Mark order as delivered
+const markDelivered = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const deliveryPersonId = req.body.userId;
+
+    if (!orderId) {
+      return res.json({ success: false, message: "Order ID is required" });
+    }
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+
+    // Check if delivery person is assigned
+    if (order.assignedDeliveryPerson?.toString() !== deliveryPersonId) {
+      return res.json({ success: false, message: "You are not assigned to this order" });
+    }
+
+    // Check if order is not already delivered
+    if (order.status === "Delivered") {
+      return res.json({ success: false, message: "Order already delivered" });
+    }
+
+    // Update order status
+    order.status = "Delivered";
+    order.deliveredAt = new Date();
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Order marked as delivered",
+      order: order,
+    });
+  } catch (error) {
+    console.error("Mark delivered error:", error);
+    res.json({ success: false, message: "Error marking order as delivered" });
+  }
+};
+
+export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getNearestOrders, getAvailableOrders, getPendingOrders, acceptOrder, getOrder, markDelivered };

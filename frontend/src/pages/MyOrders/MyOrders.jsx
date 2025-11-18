@@ -11,7 +11,6 @@ const MyOrders = () => {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [sharingLocation, setShareingLocation] = useState(false);
 
   const fetchOrders = async () => {
     const response = await axios.post(
@@ -32,22 +31,33 @@ const MyOrders = () => {
 
   const getStatusColor = (status) => {
     const statusLower = status.toLowerCase();
-    if (statusLower.includes("complete") || statusLower.includes("delivered")) {
+    if (statusLower.includes("delivered")) {
       return "completed";
-    } else if (statusLower.includes("pending") || statusLower.includes("on the way") || statusLower.includes("food being prepared")) {
+    } else if (statusLower.includes("pending") || statusLower.includes("processing") || statusLower.includes("delivery")) {
       return "on-way";
     } else if (statusLower.includes("cancel") || statusLower.includes("refused")) {
       return "refused";
     }
-    return "pending";
+    return "on-way";
+  };
+
+  const mapStatusLabelToColor = (label) => {
+    const labelToColorMap = {
+      "All": "all",
+      "On the Way": "on-way",
+      "Completed": "completed",
+      "Refused": "refused",
+    };
+    return labelToColorMap[label] || label;
   };
 
   const filterOrders = () => {
     if (selectedStatus === "All") return data;
 
+    const targetColor = mapStatusLabelToColor(selectedStatus);
     return data.filter((order) => {
       const orderStatusColor = getStatusColor(order.status);
-      return orderStatusColor === selectedStatus;
+      return orderStatusColor === targetColor;
     });
   };
 
@@ -60,55 +70,13 @@ const MyOrders = () => {
     Refused: data.filter((o) => getStatusColor(o.status) === "refused").length,
   };
 
-  const handleTrackOrder = async () => {
+  const handleTrackOrder = (orderId) => {
     if (userRole !== "user") {
       toast.error("Only customer accounts can track orders");
       return;
     }
 
-    setShareingLocation(true);
-
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
-      setShareingLocation(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-
-        try {
-          const response = await axios.post(
-            url + "/api/location/update",
-            { latitude, longitude, accuracy },
-            { headers: { token } }
-          );
-
-          if (response.data.success) {
-            toast.success("Location shared successfully");
-            navigate("/nearest-orders");
-          } else {
-            toast.error(response.data.message || "Failed to share location");
-            setShareingLocation(false);
-          }
-        } catch (error) {
-          console.error("Error sharing location:", error);
-          toast.error(error.response?.data?.message || "Error sharing location");
-          setShareingLocation(false);
-        }
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-        toast.error(`Location access denied: ${error.message}`);
-        setShareingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
+    navigate(`/order-tracking/${orderId}`);
   };
 
   return (
@@ -155,10 +123,9 @@ const MyOrders = () => {
                 {userRole === "user" && (
                   <button
                     className="track-btn"
-                    onClick={handleTrackOrder}
-                    disabled={sharingLocation}
+                    onClick={() => handleTrackOrder(order._id)}
                   >
-                    {sharingLocation ? "Sharing Location..." : "Track Order"}
+                    Track Order
                   </button>
                 )}
               </div>

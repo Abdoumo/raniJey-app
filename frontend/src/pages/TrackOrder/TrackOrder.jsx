@@ -3,12 +3,12 @@ import './TrackOrder.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { StoreContext } from '../../context/StoreContext';
 import { useTracking } from '../../hooks/useTracking';
+import { useAutoTracking } from '../../hooks/useAutoTracking';
 import { toast } from 'react-toastify';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
 
-// Fix Leaflet marker icons issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -26,6 +26,7 @@ const TrackOrder = () => {
   const deliveryMarkerRef = useRef(null);
   const polylineRef = useRef(null);
   const routePointsRef = useRef([]);
+  const pollingIntervalRef = useRef(null);
 
   const [order, setOrder] = useState(null);
   const [deliveryLocation, setDeliveryLocation] = useState(null);
@@ -36,10 +37,17 @@ const TrackOrder = () => {
   const [error, setError] = useState(null);
   const [isDelivered, setIsDelivered] = useState(false);
 
-  // WebSocket tracking
-  const userId = localStorage.getItem('userId') || 'anonymous';
-  const { isConnected, locationUpdates, subscribeToOrder } = useTracking(url, token, userId, userRole || 'user');
-  const pollingIntervalRef = useRef(null);
+  // Auto-tracking (for customer to send location if needed)
+  const { location: autoLocation } = useAutoTracking();
+
+  // WebSocket tracking - only initialize if user is logged in with valid ID
+  const userId = token ? localStorage.getItem('userId') : null;
+  const { isConnected, locationUpdates, subscribeToOrder, sendLocation } = useTracking(
+    url,
+    token,
+    userId,
+    userRole || 'user'
+  );
 
   // Haversine formula to calculate distance
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -66,10 +74,10 @@ const TrackOrder = () => {
 
   // Calculate ETA (assuming average speed of 30 km/h in city)
   const calculateETA = (distanceKm) => {
-    const averageSpeed = 30; // km/h
+    const averageSpeed = 30;
     const hours = distanceKm / averageSpeed;
     const minutes = Math.round(hours * 60);
-    return minutes;
+    return Math.max(minutes, 1);
   };
 
   // Fetch order details
@@ -82,8 +90,7 @@ const TrackOrder = () => {
 
       if (response.data.success) {
         setOrder(response.data.order);
-        
-        // Set customer location
+
         if (response.data.order.deliveryLocation) {
           setCustomerLocation(response.data.order.deliveryLocation);
         }
@@ -102,7 +109,6 @@ const TrackOrder = () => {
   const initializeMap = () => {
     if (mapInstance.current || !mapRef.current) return;
 
-    // Default center (Algiers)
     const defaultCenter = [36.737, 3.0588];
     const center = customerLocation
       ? [customerLocation.latitude, customerLocation.longitude]
@@ -115,7 +121,6 @@ const TrackOrder = () => {
       maxZoom: 19,
     }).addTo(mapInstance.current);
 
-    // Add customer marker
     if (customerLocation) {
       customMarkerRef.current = L.marker([customerLocation.latitude, customerLocation.longitude], {
         title: 'Customer Delivery Address',
@@ -131,11 +136,10 @@ const TrackOrder = () => {
     }
   };
 
-  // Update delivery marker and polyline when location changes
+  // Update delivery marker and polyline
   const updateDeliveryMarker = (location) => {
     if (!location || !location.latitude || !location.longitude || !mapInstance.current) return;
 
-    // Update delivery person marker
     if (deliveryMarkerRef.current) {
       mapInstance.current.removeLayer(deliveryMarkerRef.current);
     }
@@ -155,10 +159,8 @@ const TrackOrder = () => {
       .addTo(mapInstance.current)
       .bindPopup('<div class="popup-content"><strong>🛵 Delivery Person</strong><br/>Current Location</div>');
 
-    // Add route point
     routePointsRef.current.push([location.latitude, location.longitude]);
 
-    // Update polyline
     if (routePointsRef.current.length > 1) {
       if (polylineRef.current) {
         mapInstance.current.removeLayer(polylineRef.current);
@@ -171,14 +173,13 @@ const TrackOrder = () => {
       }).addTo(mapInstance.current);
     }
 
-    // Fit map to bounds
     if (customMarkerRef.current && deliveryMarkerRef.current) {
       const group = new L.featureGroup([customMarkerRef.current, deliveryMarkerRef.current]);
       mapInstance.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     }
   };
 
-  // Fallback: Poll for delivery location updates every 3 seconds
+  // Fallback: Poll for delivery location
   const pollDeliveryLocation = () => {
     const intervalId = setInterval(async () => {
       try {
@@ -190,29 +191,8 @@ const TrackOrder = () => {
           const location = response.data.location;
           setDeliveryLocation(location);
 
-          // Update marker
-          if (deliveryMarkerRef.current) {
-            mapInstance.current.removeLayer(deliveryMarkerRef.current);
-          }
-
-          deliveryMarkerRef.current = L.marker([location.latitude, location.longitude])
-            .addTo(mapInstance.current)
-            .bindPopup('<strong>🛵 Delivery Person</strong><br/>Current Location');
-
-          // Add to route points
-          routePointsRef.current.push([location.latitude, location.longitude]);
-
-          // Update polyline
-          if (routePointsRef.current.length > 1) {
-            if (polylineRef.current) {
-              mapInstance.current.removeLayer(polylineRef.current);
-            }
-            polylineRef.current = L.polyline(routePointsRef.current, {
-              color: '#ff6b35',
-              weight: 3,
-              opacity: 0.7,
-              dashArray: '5, 5',
-            }).addTo(mapInstance.current);
+          if (mapInstance.current) {
+            updateDeliveryMarker(location);
           }
         }
       } catch (err) {
@@ -252,7 +232,14 @@ const TrackOrder = () => {
     }
   };
 
-  // Update distance and ETA when delivery location changes
+  // Send customer location if available
+  useEffect(() => {
+    if (autoLocation && isConnected) {
+      sendLocation(autoLocation.latitude, autoLocation.longitude, autoLocation.accuracy);
+    }
+  }, [autoLocation, isConnected, sendLocation]);
+
+  // Update distance and ETA
   useEffect(() => {
     if (customerLocation && deliveryLocation) {
       const distKm = calculateDistance(
@@ -275,16 +262,14 @@ const TrackOrder = () => {
     fetchOrderDetails();
   }, [orderId, token]);
 
-  // Initialize map and subscribe to order updates
+  // Initialize map and subscribe to order
   useEffect(() => {
     if (order && customerLocation && !isDelivered) {
       initializeMap();
 
-      // Subscribe via WebSocket if connected, otherwise use polling
       if (isConnected) {
         subscribeToOrder(orderId);
       } else {
-        // Fallback to HTTP polling
         pollingIntervalRef.current = pollDeliveryLocation();
       }
     }
@@ -301,7 +286,9 @@ const TrackOrder = () => {
     if (locationUpdates[orderId]) {
       const location = locationUpdates[orderId];
       setDeliveryLocation(location);
-      updateDeliveryMarker(location);
+      if (mapInstance.current) {
+        updateDeliveryMarker(location);
+      }
     }
   }, [locationUpdates, orderId]);
 
@@ -374,7 +361,7 @@ const TrackOrder = () => {
                 <strong>Total:</strong> Da{order?.amount || 0}
               </p>
               <p>
-                <strong>Address:</strong> {order?.address || 'Not provided'}
+                <strong>Address:</strong> {order?.address ? `${order.address.street}, ${order.address.city}, ${order.address.state} ${order.address.zipcode}` : 'Not provided'}
               </p>
             </div>
           </div>
@@ -385,9 +372,15 @@ const TrackOrder = () => {
             </button>
           )}
 
-          {!isDelivered && distance > 0.5 && (
+          {!isDelivered && distance !== null && distance > 0.5 && (
             <div className="delivery-notice">
               📍 Get closer to customer location to mark as delivered
+            </div>
+          )}
+
+          {!deliveryLocation && (
+            <div className="delivery-notice">
+              ⏳ Waiting for delivery person location...
             </div>
           )}
         </div>

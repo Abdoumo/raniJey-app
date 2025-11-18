@@ -47,6 +47,14 @@ const Sidebar = () => {
           <div className="sidebar-indicator"></div>
         </NavLink>
 
+        <NavLink to='/pricing' className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
+          <div className="sidebar-icon-wrapper">
+            <img src={assets.order_icon} alt="Pricing" className="sidebar-icon" />
+          </div>
+          <span className="sidebar-label">Delivery Pricing</span>
+          <div className="sidebar-indicator"></div>
+        </NavLink>
+
         <NavLink to='/delivery-tracking' className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
           <div className="sidebar-icon-wrapper">
             <img src={assets.order_icon} alt="Delivery Tracking" className="sidebar-icon" />

@@ -10,6 +10,7 @@ import orderRouter from "./routes/orderRoute.js";
 import shopRouter from "./routes/shopRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import locationRouter from "./routes/locationRoute.js";
+import pricingRouter from "./routes/pricingRoute.js";
 import setupWebSocket from "./config/websocket.js";
 
 // app config
@@ -19,7 +20,27 @@ const httpServer = createServer(app);
 
 //middlewares
 app.use(express.json());
-app.use(cors());
+
+// Configure CORS to allow multiple origins
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://rani-jay.com',
+      'https://admin.rani-jay.com',
+      'http://localhost:5173',
+      'http://localhost:3000',
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 // DB connection
 connectDB();
@@ -36,9 +57,10 @@ app.use("/api/order", orderRouter);
 app.use("/api/shop", shopRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/location", locationRouter);
+app.use("/api/pricing", pricingRouter);
 
 app.get("/", (req, res) => {
-  res.send("API Working");
+  res.send("API Working - Pricing route active");
 });
 
 httpServer.listen(port, () => {

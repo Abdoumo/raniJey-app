@@ -4,7 +4,7 @@ import fs from "fs";
 
 // Create shop (Admin only)
 const createShop = async (req, res) => {
-  const { name, type, description, address, phone } = req.body;
+  const { name, type, description, address, phone, latitude, longitude } = req.body;
 
   try {
     const userId = req.body.userId;
@@ -24,15 +24,23 @@ const createShop = async (req, res) => {
       image_filename = req.file.filename;
     }
 
-    const shop = new shopModel({
+    const shopData = {
       name,
       type,
       description,
       address,
       phone,
       image: image_filename,
-    });
+    };
 
+    if (latitude && longitude) {
+      shopData.location = {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+      };
+    }
+
+    const shop = new shopModel(shopData);
     await shop.save();
     res.json({ success: true, message: "Shop created successfully", shop });
   } catch (error) {
@@ -84,7 +92,7 @@ const updateShop = async (req, res) => {
   try {
     const userId = req.body.userId;
     const { id } = req.params;
-    const { name, type, description, address, phone } = req.body;
+    const { name, type, description, address, phone, latitude, longitude } = req.body;
 
     const user = await userModel.findById(userId);
     if (!user || user.role !== "admin") {
@@ -107,6 +115,14 @@ const updateShop = async (req, res) => {
     if (description) shop.description = description;
     if (address) shop.address = address;
     if (phone) shop.phone = phone;
+
+    // Update location if provided
+    if (latitude && longitude) {
+      shop.location = {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+      };
+    }
 
     // Update image if provided
     if (req.file) {

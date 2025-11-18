@@ -8,6 +8,10 @@ const shopSchema = new mongoose.Schema(
     address: { type: String, required: true },
     phone: { type: String, required: true },
     image: { type: String, default: "" },
+    location: {
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+    },
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
   },

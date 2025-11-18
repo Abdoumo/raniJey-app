@@ -8,6 +8,7 @@ import Orders from "./pages/Orders/Orders";
 import Users from "./pages/Users/Users";
 import Shop from "./pages/Shop/Shop";
 import Category from "./pages/Category/Category";
+import Pricing from "./pages/Pricing/Pricing";
 import DeliveryTracking from "./pages/DeliveryTracking/DeliveryTracking";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -15,7 +16,7 @@ import Login from "./components/Login/Login";
 import { StoreContext } from "./context/StoreContext";
 
 const App = () => {
-  const url = "http://localhost:4000";
+  const url = "https://backend.rani-jay.com";
   const { admin, token } = useContext(StoreContext);
 
   return (
@@ -33,6 +34,7 @@ const App = () => {
               <Route path="/users" element={<Users url={url}/>} />
               <Route path="/shop" element={<Shop url={url}/>} />
               <Route path="/category" element={<Category url={url}/>} />
+              <Route path="/pricing" element={<Pricing url={url}/>} />
               <Route path="/delivery-tracking" element={<DeliveryTracking url={url}/>} />
               <Route path="/" element={<Add url={url}/>} />
             </Routes>

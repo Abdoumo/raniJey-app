@@ -8,6 +8,7 @@ const StoreContextProvider = (props) => {
   const [admin, setAdmin] = useState(false);
   const [userRole, setUserRole] = useState("");
   const [userName, setUserName] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
 
   useEffect(() => {
@@ -24,6 +25,7 @@ const StoreContextProvider = (props) => {
       if (localStorage.getItem("userName")) {
         setUserName(localStorage.getItem("userName"));
       }
+      setIsLoading(false);
     }
     loadData();
   }, []);
@@ -37,6 +39,7 @@ const StoreContextProvider = (props) => {
     setUserRole,
     userName,
     setUserName,
+    isLoading,
   };
   return (
     <StoreContext.Provider value={contextValue}>
