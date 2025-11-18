@@ -3,7 +3,7 @@
 This document outlines all the backend API endpoints required to support the Users management frontend page.
 
 ## Base URL
-`http://backend.rani-jay.com`
+`http://localhost:4000`
 
 ## Authentication
 All user-related endpoints require a token passed in the request headers:

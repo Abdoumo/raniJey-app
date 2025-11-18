@@ -12,6 +12,10 @@ const orderSchema = new mongoose.Schema({
   pickupLocation: { latitude: Number, longitude: Number },
   deliveryLocation: { latitude: Number, longitude: Number },
   assignedAt: { type: Date, default: null },
+  acceptedAt: { type: Date, default: null },
+  startedAt: { type: Date, default: null },
+  deliveredAt: { type: Date, default: null },
+  estimatedDeliveryTime: { type: Number, default: null },
 });
 
 const orderModel =

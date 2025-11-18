@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import './TrackOrder.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { StoreContext } from '../../context/StoreContext';
+import { useTracking } from '../../hooks/useTracking';
 import { toast } from 'react-toastify';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -17,7 +18,7 @@ L.Icon.Default.mergeOptions({
 
 const TrackOrder = () => {
   const { orderId } = useParams();
-  const { url, token } = useContext(StoreContext);
+  const { url, token, userRole } = useContext(StoreContext);
   const navigate = useNavigate();
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -34,6 +35,11 @@ const TrackOrder = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDelivered, setIsDelivered] = useState(false);
+
+  // WebSocket tracking
+  const userId = localStorage.getItem('userId') || 'anonymous';
+  const { isConnected, locationUpdates, subscribeToOrder } = useTracking(url, token, userId, userRole || 'user');
+  const pollingIntervalRef = useRef(null);
 
   // Haversine formula to calculate distance
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -125,92 +131,50 @@ const TrackOrder = () => {
     }
   };
 
-  // Connect to WebSocket for real-time location updates
-  const connectWebSocket = () => {
-    try {
-      const socket = new WebSocket(`ws://backend.rani-jay.com`);
+  // Update delivery marker and polyline when location changes
+  const updateDeliveryMarker = (location) => {
+    if (!location || !location.latitude || !location.longitude || !mapInstance.current) return;
 
-      socket.onopen = () => {
-        console.log('WebSocket connected');
-        socket.emit = (event, data) => {
-          socket.send(JSON.stringify({ event, data }));
-        };
-        socket.emit('join-order-tracking', orderId);
-      };
+    // Update delivery person marker
+    if (deliveryMarkerRef.current) {
+      mapInstance.current.removeLayer(deliveryMarkerRef.current);
+    }
 
-      socket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          
-          if (message.event === 'delivery-location-updated' || message.type === 'location') {
-            const location = message.data || message.location;
-            
-            if (location && location.latitude && location.longitude) {
-              setDeliveryLocation(location);
+    deliveryMarkerRef.current = L.marker(
+      [location.latitude, location.longitude],
+      {
+        title: 'Delivery Person',
+        icon: L.icon({
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+          iconSize: [32, 41],
+          iconAnchor: [16, 41],
+          popupAnchor: [0, -41],
+        }),
+      }
+    )
+      .addTo(mapInstance.current)
+      .bindPopup('<div class="popup-content"><strong>🛵 Delivery Person</strong><br/>Current Location</div>');
 
-              // Update delivery person marker
-              if (deliveryMarkerRef.current) {
-                mapInstance.current.removeLayer(deliveryMarkerRef.current);
-              }
+    // Add route point
+    routePointsRef.current.push([location.latitude, location.longitude]);
 
-              deliveryMarkerRef.current = L.marker(
-                [location.latitude, location.longitude],
-                {
-                  title: 'Delivery Person',
-                  icon: L.icon({
-                    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-                    iconSize: [32, 41],
-                    iconAnchor: [16, 41],
-                    popupAnchor: [0, -41],
-                  }),
-                }
-              )
-                .addTo(mapInstance.current)
-                .bindPopup('<div class="popup-content"><strong>🛵 Delivery Person</strong><br/>Current Location</div>');
+    // Update polyline
+    if (routePointsRef.current.length > 1) {
+      if (polylineRef.current) {
+        mapInstance.current.removeLayer(polylineRef.current);
+      }
+      polylineRef.current = L.polyline(routePointsRef.current, {
+        color: '#ff6b35',
+        weight: 3,
+        opacity: 0.7,
+        dashArray: '5, 5',
+      }).addTo(mapInstance.current);
+    }
 
-              // Add route point
-              routePointsRef.current.push([location.latitude, location.longitude]);
-
-              // Update polyline
-              if (routePointsRef.current.length > 1) {
-                if (polylineRef.current) {
-                  mapInstance.current.removeLayer(polylineRef.current);
-                }
-                polylineRef.current = L.polyline(routePointsRef.current, {
-                  color: '#ff6b35',
-                  weight: 3,
-                  opacity: 0.7,
-                  dashArray: '5, 5',
-                }).addTo(mapInstance.current);
-              }
-
-              // Fit map to bounds
-              if (customMarkerRef.current && deliveryMarkerRef.current) {
-                const group = new L.featureGroup([customMarkerRef.current, deliveryMarkerRef.current]);
-                mapInstance.current.fitBounds(group.getBounds(), { padding: [50, 50] });
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Error parsing WebSocket message:', err);
-        }
-      };
-
-      socket.onerror = (err) => {
-        console.error('WebSocket error:', err);
-        // Fallback to polling if WebSocket fails
-        pollDeliveryLocation();
-      };
-
-      socket.onclose = () => {
-        console.log('WebSocket disconnected');
-      };
-
-      return socket;
-    } catch (err) {
-      console.error('Error connecting WebSocket:', err);
-      // Fallback to HTTP polling
-      pollDeliveryLocation();
+    // Fit map to bounds
+    if (customMarkerRef.current && deliveryMarkerRef.current) {
+      const group = new L.featureGroup([customMarkerRef.current, deliveryMarkerRef.current]);
+      mapInstance.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     }
   };
 
@@ -311,13 +275,35 @@ const TrackOrder = () => {
     fetchOrderDetails();
   }, [orderId, token]);
 
-  // Initialize map and WebSocket when order details are loaded
+  // Initialize map and subscribe to order updates
   useEffect(() => {
     if (order && customerLocation && !isDelivered) {
       initializeMap();
-      connectWebSocket();
+
+      // Subscribe via WebSocket if connected, otherwise use polling
+      if (isConnected) {
+        subscribeToOrder(orderId);
+      } else {
+        // Fallback to HTTP polling
+        pollingIntervalRef.current = pollDeliveryLocation();
+      }
     }
-  }, [order, customerLocation]);
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [order, customerLocation, isConnected, orderId, subscribeToOrder]);
+
+  // Handle location updates from WebSocket
+  useEffect(() => {
+    if (locationUpdates[orderId]) {
+      const location = locationUpdates[orderId];
+      setDeliveryLocation(location);
+      updateDeliveryMarker(location);
+    }
+  }, [locationUpdates, orderId]);
 
   if (loading) {
     return (

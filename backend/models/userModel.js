@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema(
     role: { type: String, default:"user" },
     cartData: { type: Object, default: {} },
     isActive: { type: Boolean, default: true },
+    lastKnownLocation: {
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+      lastUpdated: { type: Date, default: null },
+    },
   },
   { minimize: false }
 );

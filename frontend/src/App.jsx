@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Navbar from "./components/Navbar/Navbar";
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home/Home";
@@ -6,18 +6,37 @@ import Cart from "./pages/Cart/Cart";
 import PlaceOrder from "./pages/PlaceOrder/PlaceOrder";
 import Footer from "./components/Footer/Footer";
 import LoginPopup from "./components/LoginPopup/LoginPopup";
+import AddNoteModal from "./components/AddNoteModal/AddNoteModal";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import NearestOrders from "./pages/NearestOrders/NearestOrders";
 import TrackOrder from "./pages/TrackOrder/TrackOrder";
+import { StoreContext } from "./context/StoreContext";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
+  const { showNoteModal, setShowNoteModal, pendingItemId, confirmAddToCart, food_list } = useContext(StoreContext);
+
+  const getPendingItemName = () => {
+    if (pendingItemId) {
+      const item = food_list.find((food) => food._id === pendingItemId);
+      return item?.name || "Item";
+    }
+    return "Item";
+  };
+
   return (
     <>
       {showLogin ? <LoginPopup setShowLogin={setShowLogin} /> : <></>}
+      {showNoteModal && (
+        <AddNoteModal
+          itemName={getPendingItemName()}
+          onConfirm={confirmAddToCart}
+          onCancel={() => setShowNoteModal(false)}
+        />
+      )}
       <div className="app">
         <ToastContainer />
         <Navbar setShowLogin={setShowLogin} />

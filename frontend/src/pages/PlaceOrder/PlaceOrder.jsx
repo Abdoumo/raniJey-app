@@ -33,12 +33,14 @@ const PlaceOrder = () => {
 
     let orderItems = [];
     food_list.forEach((item) => {
-      if (cartItems[item._id] > 0) {
+      const cartItem = cartItems[item._id];
+      if (cartItem && cartItem.quantity > 0) {
         orderItems.push({
           _id: item._id,
           name: item.name,
           price: item.price,
-          quantity: cartItems[item._id],
+          quantity: cartItem.quantity,
+          notes: cartItem.notes || "",
           image: item.image,
         });
       }

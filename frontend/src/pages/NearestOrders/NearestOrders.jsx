@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import './NearestOrders.css';
 import { StoreContext } from '../../context/StoreContext';
+import { useTracking } from '../../hooks/useTracking';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +9,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const NearestOrders = () => {
-  const { url, token } = useContext(StoreContext);
+  const { url, token, userRole } = useContext(StoreContext);
   const navigate = useNavigate();
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -19,6 +20,10 @@ const NearestOrders = () => {
   const [nearestOrders, setNearestOrders] = useState([]);
   const [error, setError] = useState(null);
   const [acceptingOrderId, setAcceptingOrderId] = useState(null);
+
+  // WebSocket tracking
+  const userId = localStorage.getItem('userId') || 'anonymous';
+  const { isConnected, sendLocation, subscribeToOrder } = useTracking(url, token, userId, userRole || 'user');
 
   const initializeMap = (lat, lng) => {
     if (mapInstance.current) return;
@@ -160,6 +165,16 @@ const NearestOrders = () => {
       return;
     }
 
+    // Try WebSocket first if connected
+    if (isConnected) {
+      const sent = sendLocation(latitude, longitude, accuracy);
+      if (sent) {
+        // Silent success for WebSocket
+        return;
+      }
+    }
+
+    // Fallback to HTTP if WebSocket not available
     try {
       const response = await axios.post(
         `${url}/api/location/update`,
@@ -174,13 +189,12 @@ const NearestOrders = () => {
       );
 
       if (response.data.success) {
-        toast.success('Location updated successfully');
-      } else {
-        setError(response.data.message || 'Failed to update location');
+        // Silent success for location updates
       }
     } catch (err) {
-      console.error('Error sending location:', err);
-      setError(err.response?.data?.message || 'Error sending location to backend');
+      // Silently ignore location update errors - they're not critical
+      // This is expected when backend is not ready
+      console.debug('Location update failed (non-critical):', err?.message);
     }
   };
 
@@ -247,7 +261,6 @@ const NearestOrders = () => {
     try {
       let response;
       let endpointUsed = '';
-      let usedMockData = false;
 
       // Try endpoints in order
       const endpoints = [
@@ -267,7 +280,7 @@ const NearestOrders = () => {
           break;
         } catch (err) {
           if (err.response?.status === 404) {
-            console.log(`Endpoint ${endpoint.url} not found, trying next...`);
+            console.log(`Endpoint ${endpoint.url} not found (404), trying next...`);
             continue;
           } else if (err.response?.status === 401 || err.response?.status === 403) {
             console.log(`Endpoint ${endpoint.url} requires different auth, trying next...`);
@@ -278,56 +291,17 @@ const NearestOrders = () => {
         }
       }
 
-      // Fallback: Use mock data for testing
       if (!response) {
-        console.warn('No backend endpoints available, using mock data for demonstration');
-        usedMockData = true;
-        response = {
-          data: {
-            success: true,
-            orders: [
-              {
-                _id: '1',
-                customerName: 'Ahmed Taha',
-                deliveryLocation: { latitude: location.latitude + 0.002, longitude: location.longitude + 0.001 },
-                amount: 2500,
-                items: 5,
-                status: 'Pending',
-              },
-              {
-                _id: '2',
-                customerName: 'Fatima Hassan',
-                deliveryLocation: { latitude: location.latitude - 0.001, longitude: location.longitude + 0.003 },
-                amount: 1800,
-                items: 3,
-                status: 'Pending',
-              },
-              {
-                _id: '3',
-                customerName: 'Mohammed Ali',
-                deliveryLocation: { latitude: location.latitude + 0.003, longitude: location.longitude - 0.002 },
-                amount: 3200,
-                items: 7,
-                status: 'Pending',
-              },
-              {
-                _id: '4',
-                customerName: 'Layla Sami',
-                deliveryLocation: { latitude: location.latitude - 0.002, longitude: location.longitude - 0.001 },
-                amount: 1500,
-                items: 2,
-                status: 'Pending',
-              },
-            ],
-          },
-        };
+        console.error('All order endpoints failed - unable to fetch orders');
+        setError('Unable to fetch nearby orders. Please try again or check your location permissions.');
+        return;
       }
 
       if (response.data.success) {
         const orders = response.data.orders || response.data.data || [];
 
-        // Filter by distance client-side if needed
-        if (!endpointUsed.includes('nearest') || usedMockData) {
+        // Filter by distance client-side if needed (for endpoints that don't do it)
+        if (!endpointUsed.includes('nearest')) {
           const nearbyOrders = filterOrdersByDistance(orders, location);
           setNearestOrders(nearbyOrders);
           addOrderMarkers(nearbyOrders);
@@ -336,18 +310,15 @@ const NearestOrders = () => {
             setError('No nearby orders found. Try moving to a different location or activating more precise GPS.');
           } else {
             setError(null);
-            if (usedMockData) {
-              toast.warning('Showing demo orders (backend not ready yet)');
-            } else {
-              toast.success(`Found ${nearbyOrders.length} nearby orders!`);
-            }
+            toast.success(`Found ${nearbyOrders.length} nearby orders!`);
           }
         } else {
+          // /api/order/nearest already returns filtered nearby orders
           setNearestOrders(orders);
           addOrderMarkers(orders);
 
           if (orders.length === 0) {
-            setError('No nearby orders found');
+            setError('No nearby orders found. Move to a location with pending orders.');
           } else {
             setError(null);
             toast.success(`Found ${orders.length} nearby orders!`);
@@ -422,6 +393,11 @@ const NearestOrders = () => {
 
     setAcceptingOrderId(orderId);
     try {
+      // Subscribe to order updates via WebSocket if connected
+      if (isConnected) {
+        subscribeToOrder(orderId);
+      }
+
       const response = await axios.post(
         `${url}/api/order/accept`,
         { orderId },

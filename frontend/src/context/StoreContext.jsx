@@ -6,36 +6,66 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
-  const url = "http://backend.rani-jay.com";
+  const url = "http://localhost:4000";
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
   const [shops, setShops] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [pendingItemId, setPendingItemId] = useState(null);
 
-  const addToCart = async (itemId) => {
+  const addToCart = (itemId) => {
+    setPendingItemId(itemId);
+    setShowNoteModal(true);
+  };
+
+  const confirmAddToCart = async (notes) => {
+    const itemId = pendingItemId;
     if (!cartItems[itemId]) {
-      setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
+      setCartItems((prev) => ({ ...prev, [itemId]: { quantity: 1, notes } }));
     } else {
-      setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+      setCartItems((prev) => ({
+        ...prev,
+        [itemId]: {
+          quantity: prev[itemId].quantity + 1,
+          notes: prev[itemId].notes || notes,
+        },
+      }));
     }
+
     if (token) {
       const response = await axios.post(
         url + "/api/cart/add",
-        { itemId },
+        { itemId, notes },
         { headers: { token } }
       );
       if (response.data.success) {
-        toast.success("item Added to Cart");
+        toast.success("Item added to cart");
       } else {
         toast.error("Something went wrong");
       }
     }
+
+    setShowNoteModal(false);
+    setPendingItemId(null);
   };
 
   const removeFromCart = async (itemId) => {
-    setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+    setCartItems((prev) => {
+      const currentItem = prev[itemId];
+      if (currentItem.quantity > 1) {
+        return {
+          ...prev,
+          [itemId]: { ...currentItem, quantity: currentItem.quantity - 1 },
+        };
+      } else {
+        const newCart = { ...prev };
+        delete newCart[itemId];
+        return newCart;
+      }
+    });
     if (token) {
       const response = await axios.post(
         url + "/api/cart/remove",
@@ -43,7 +73,7 @@ const StoreContextProvider = (props) => {
         { headers: { token } }
       );
       if (response.data.success) {
-        toast.success("item Removed from Cart");
+        toast.success("Item removed from cart");
       } else {
         toast.error("Something went wrong");
       }
@@ -53,10 +83,11 @@ const StoreContextProvider = (props) => {
   const getTotalCartAmount = () => {
     let totalAmount = 0;
     for (const item in cartItems) {
-      if (cartItems[item] > 0) {
+      const cartItem = cartItems[item];
+      if (cartItem.quantity > 0) {
         let itemInfo = food_list.find((product) => product._id === item);
         if (itemInfo) {
-          totalAmount += itemInfo.price * cartItems[item];
+          totalAmount += itemInfo.price * cartItem.quantity;
         }
       }
     }
@@ -97,7 +128,18 @@ const StoreContextProvider = (props) => {
         {},
         { headers: { token } }
       );
-      setCartItems(response.data.cartData);
+      const cartData = response.data.cartData;
+      // Convert old format (quantity numbers) to new format (objects with quantity and notes)
+      const convertedCartData = {};
+      for (const itemId in cartData) {
+        const item = cartData[itemId];
+        if (typeof item === "number") {
+          convertedCartData[itemId] = { quantity: item, notes: "" };
+        } else if (item.quantity !== undefined) {
+          convertedCartData[itemId] = item;
+        }
+      }
+      setCartItems(convertedCartData);
     } catch (error) {
       console.error("Error loading cart data:", error);
     }
@@ -159,6 +201,7 @@ const StoreContextProvider = (props) => {
     cartItems,
     setCartItems,
     addToCart,
+    confirmAddToCart,
     removeFromCart,
     getTotalCartAmount,
     url,
@@ -171,6 +214,9 @@ const StoreContextProvider = (props) => {
     setUserRole,
     categories,
     getCategoryName,
+    showNoteModal,
+    setShowNoteModal,
+    pendingItemId,
   };
   return (
     <StoreContext.Provider value={contextValue}>

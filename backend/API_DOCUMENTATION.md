@@ -1,7 +1,7 @@
 # User CRUD API Documentation
 
 ## Base URL
-`http://backend.rani-jay.com/api/user`
+`http://localhost:4000/api/user`
 
 ---
 
@@ -325,7 +325,7 @@ PATCH /toggle-status/507f1f77bcf86cd799439011
 # Shop Management API
 
 ## Base URL
-`http://backend.rani-jay.com/api/shop`
+`http://localhost:4000/api/shop`
 
 ---
 
@@ -567,7 +567,7 @@ GET /507f1f77bcf86cd799439011
 
 ### Create Shop (Admin)
 ```bash
-curl -X POST http://backend.rani-jay.com/api/shop/create \
+curl -X POST http://localhost:4000/api/shop/create \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=John's Restaurant" \
   -F "type=restaurant" \
@@ -579,7 +579,7 @@ curl -X POST http://backend.rani-jay.com/api/shop/create \
 
 ### Update Shop (Admin)
 ```bash
-curl -X PUT http://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011 \
+curl -X PUT http://localhost:4000/api/shop/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=John's Italian Restaurant" \
   -F "description=Updated description"
@@ -587,29 +587,29 @@ curl -X PUT http://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011 \
 
 ### Delete Shop (Admin)
 ```bash
-curl -X DELETE http://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011 \
+curl -X DELETE http://localhost:4000/api/shop/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Toggle Shop Status (Admin)
 ```bash
-curl -X PATCH http://backend.rani-jay.com/api/shop/toggle-status/507f1f77bcf86cd799439011 \
+curl -X PATCH http://localhost:4000/api/shop/toggle-status/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### List All Shops (Public)
 ```bash
-curl http://backend.rani-jay.com/api/shop/list
+curl http://localhost:4000/api/shop/list
 ```
 
 ### List Restaurants Only (Public)
 ```bash
-curl http://backend.rani-jay.com/api/shop/list?type=restaurant
+curl http://localhost:4000/api/shop/list?type=restaurant
 ```
 
 ### Get Shop by ID (Public)
 ```bash
-curl http://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011
+curl http://localhost:4000/api/shop/507f1f77bcf86cd799439011
 ```
 
 ---
@@ -657,7 +657,7 @@ GET /507f1f77bcf86cd799439011
 
 ### Register
 ```bash
-curl -X POST http://backend.rani-jay.com/api/user/register \
+curl -X POST http://localhost:4000/api/user/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "John Doe",
@@ -668,7 +668,7 @@ curl -X POST http://backend.rani-jay.com/api/user/register \
 
 ### Login
 ```bash
-curl -X POST http://backend.rani-jay.com/api/user/login \
+curl -X POST http://localhost:4000/api/user/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john@gmail.com",
@@ -678,13 +678,13 @@ curl -X POST http://backend.rani-jay.com/api/user/login \
 
 ### Get Profile (Protected)
 ```bash
-curl -X GET http://backend.rani-jay.com/api/user/profile \
+curl -X GET http://localhost:4000/api/user/profile \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Update Profile (Protected)
 ```bash
-curl -X PUT http://backend.rani-jay.com/api/user/profile \
+curl -X PUT http://localhost:4000/api/user/profile \
   -H "token: YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -695,24 +695,24 @@ curl -X PUT http://backend.rani-jay.com/api/user/profile \
 
 ### Delete Account (Protected)
 ```bash
-curl -X DELETE http://backend.rani-jay.com/api/user/profile \
+curl -X DELETE http://localhost:4000/api/user/profile \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Get User by ID (Public)
 ```bash
-curl http://backend.rani-jay.com/api/user/507f1f77bcf86cd799439011
+curl http://localhost:4000/api/user/507f1f77bcf86cd799439011
 ```
 
 ### Get All Users (Admin Only)
 ```bash
-curl -X GET http://backend.rani-jay.com/api/user/list/all \
+curl -X GET http://localhost:4000/api/user/list/all \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Toggle User Account Status (Admin Only)
 ```bash
-curl -X PATCH http://backend.rani-jay.com/api/user/toggle-status/507f1f77bcf86cd799439011 \
+curl -X PATCH http://localhost:4000/api/user/toggle-status/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
@@ -747,7 +747,7 @@ curl -X PATCH http://backend.rani-jay.com/api/user/toggle-status/507f1f77bcf86cd
 # Food Management API
 
 ## Base URL
-`http://backend.rani-jay.com/api/food`
+`http://localhost:4000/api/food`
 
 ---
 
@@ -881,7 +881,7 @@ Content-Type: application/json
 
 ### Add Food (Admin)
 ```bash
-curl -X POST http://backend.rani-jay.com/api/food/add \
+curl -X POST http://localhost:4000/api/food/add \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=Pasta Carbonara" \
   -F "description=Creamy Italian pasta" \
@@ -893,17 +893,17 @@ curl -X POST http://backend.rani-jay.com/api/food/add \
 
 ### List All Foods
 ```bash
-curl http://backend.rani-jay.com/api/food/list
+curl http://localhost:4000/api/food/list
 ```
 
 ### Get Foods by Shop
 ```bash
-curl http://backend.rani-jay.com/api/food/shop/507f1f77bcf86cd799439011
+curl http://localhost:4000/api/food/shop/507f1f77bcf86cd799439011
 ```
 
 ### Remove Food (Admin)
 ```bash
-curl -X POST http://backend.rani-jay.com/api/food/remove \
+curl -X POST http://localhost:4000/api/food/remove \
   -H "token: ADMIN_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"id": "507f1f77bcf86cd799439021"}'
@@ -916,7 +916,7 @@ curl -X POST http://backend.rani-jay.com/api/food/remove \
 # Product Category API
 
 ## Base URL
-`http://backend.rani-jay.com/api/category`
+`http://localhost:4000/api/category`
 
 ---
 
@@ -1125,7 +1125,7 @@ GET /507f1f77bcf86cd799439031
 
 ### Create Category (Admin)
 ```bash
-curl -X POST http://backend.rani-jay.com/api/category/create \
+curl -X POST http://localhost:4000/api/category/create \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=Pasta" \
   -F "description=All types of pasta dishes" \
@@ -1134,7 +1134,7 @@ curl -X POST http://backend.rani-jay.com/api/category/create \
 
 ### Update Category (Admin)
 ```bash
-curl -X PUT http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031 \
+curl -X PUT http://localhost:4000/api/category/507f1f77bcf86cd799439031 \
   -H "token: ADMIN_JWT_TOKEN" \
   -F "name=Italian Pasta" \
   -F "description=Updated description"
@@ -1142,24 +1142,24 @@ curl -X PUT http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031 \
 
 ### Delete Category (Admin)
 ```bash
-curl -X DELETE http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031 \
+curl -X DELETE http://localhost:4000/api/category/507f1f77bcf86cd799439031 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Toggle Category Status (Admin)
 ```bash
-curl -X PATCH http://backend.rani-jay.com/api/category/toggle-status/507f1f77bcf86cd799439031 \
+curl -X PATCH http://localhost:4000/api/category/toggle-status/507f1f77bcf86cd799439031 \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### List All Categories (Public)
 ```bash
-curl http://backend.rani-jay.com/api/category/list
+curl http://localhost:4000/api/category/list
 ```
 
 ### Get Category by ID (Public)
 ```bash
-curl http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031
+curl http://localhost:4000/api/category/507f1f77bcf86cd799439031
 ```
 
 ---
@@ -1169,7 +1169,7 @@ curl http://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031
 # Real-Time Location Tracking API
 
 ## Base URL
-`http://backend.rani-jay.com/api/location`
+`http://localhost:4000/api/location`
 
 ## WebSocket Connection
 `ws://backend.rani-jay.com` (Socket.io)
@@ -1482,12 +1482,57 @@ socket.emit('get-active-deliveries', (response) => {
 });
 ```
 
+#### 5. Subscribe to Order
+```javascript
+socket.emit('SUBSCRIBE_ORDER', {
+  orderId: '507f1f77bcf86cd799439050',
+  userId: '507f1f77bcf86cd799439011'
+});
+```
+Customer subscribes to real-time updates for a delivery order
+
+#### 6. Accept Order
+```javascript
+socket.emit('ACCEPT_ORDER', {
+  orderId: '507f1f77bcf86cd799439050',
+  userId: '507f1f77bcf86cd799439020'
+});
+```
+Delivery person accepts an assigned order
+
+#### 7. Start Delivery
+```javascript
+socket.emit('START_DELIVERY', {
+  orderId: '507f1f77bcf86cd799439050',
+  userId: '507f1f77bcf86cd799439020'
+});
+```
+Delivery person starts delivering the order
+
+#### 8. Complete Delivery
+```javascript
+socket.emit('COMPLETE_DELIVERY', {
+  orderId: '507f1f77bcf86cd799439050',
+  userId: '507f1f77bcf86cd799439020'
+});
+```
+Delivery person completes the delivery
+
 ### Server to Client
 
 #### 1. Current Location
 ```javascript
 socket.on('current-location', (location) => {
   console.log('Current location:', location);
+  // {
+  //   "_id": "...",
+  //   "userId": "507f1f77bcf86cd799439020",
+  //   "latitude": 40.7128,
+  //   "longitude": -74.0060,
+  //   "accuracy": 10,
+  //   "isActive": true,
+  //   "lastUpdated": "2024-01-15T10:30:00Z"
+  // }
 });
 ```
 
@@ -1497,6 +1542,124 @@ socket.on('location-updated', (location) => {
   console.log('Location updated:', location);
 });
 ```
+
+#### 3. Delivery Location Updated
+```javascript
+socket.on('delivery-location-updated', (data) => {
+  console.log('Delivery location:', data);
+  // {
+  //   "location": {...},
+  //   "orderId": "507f1f77bcf86cd799439050",
+  //   "deliveryPerson": "507f1f77bcf86cd799439020"
+  // }
+});
+```
+
+#### 4. Order Details
+```javascript
+socket.on('order-details', (data) => {
+  console.log('Order details:', data);
+  // {
+  //   "orderId": "507f1f77bcf86cd799439050",
+  //   "status": "Food Processing",
+  //   "assignedDeliveryPerson": "507f1f77bcf86cd799439020",
+  //   "estimatedDeliveryTime": 30
+  // }
+});
+```
+
+#### 5. Order Accepted
+```javascript
+socket.on('order-accepted', (data) => {
+  console.log('Order accepted:', data);
+  // {
+  //   "orderId": "507f1f77bcf86cd799439050",
+  //   "acceptedAt": "2024-01-15T10:35:00Z",
+  //   "deliveryPerson": "507f1f77bcf86cd799439020"
+  // }
+});
+```
+
+#### 6. Delivery Started
+```javascript
+socket.on('delivery-started', (data) => {
+  console.log('Delivery started:', data);
+  // {
+  //   "orderId": "507f1f77bcf86cd799439050",
+  //   "startedAt": "2024-01-15T10:40:00Z",
+  //   "deliveryPerson": "507f1f77bcf86cd799439020"
+  // }
+});
+```
+
+#### 7. Delivery Completed
+```javascript
+socket.on('delivery-completed', (data) => {
+  console.log('Delivery completed:', data);
+  // {
+  //   "orderId": "507f1f77bcf86cd799439050",
+  //   "deliveredAt": "2024-01-15T10:50:00Z",
+  //   "deliveryPerson": "507f1f77bcf86cd799439020"
+  // }
+});
+```
+
+#### 8. Error Event
+```javascript
+socket.on('error', (error) => {
+  console.log('WebSocket error:', error);
+  // { "message": "Error description" }
+});
+```
+
+---
+
+## WebSocket Implementation Flow
+
+### Customer Tracking Delivery
+```
+1. Customer places order (POST /api/order/place)
+2. Admin assigns delivery person (POST /api/location/match/:orderId)
+3. Delivery person connects WebSocket (socket.io connection)
+4. Delivery person joins location tracking (emit 'join-tracking')
+5. Delivery person accepts order (emit 'ACCEPT_ORDER')
+6. Delivery person starts delivery (emit 'START_DELIVERY')
+7. Delivery person sends location every 3 seconds (emit 'LOCATION_UPDATE')
+8. Customer subscribes to order (emit 'SUBSCRIBE_ORDER')
+9. Customer receives delivery location updates in real-time
+10. Delivery person completes delivery (emit 'COMPLETE_DELIVERY')
+11. Customer receives delivery completion notification
+```
+
+### Delivery Person Accepting Order
+```
+1. Admin or system assigns order to delivery person
+2. Delivery person receives order push notification
+3. Delivery person connects WebSocket
+4. Delivery person emits 'ACCEPT_ORDER' with orderId
+5. System updates order with acceptedAt timestamp
+6. All subscribers of order receive 'order-accepted' event
+7. Delivery person enables GPS and starts sending LOCATION_UPDATE
+```
+
+---
+
+## Message Types Summary
+
+| Message Type | Direction | Role | Purpose |
+|---|---|---|---|
+| LOCATION_UPDATE | Client → Server | Delivery Person | Send GPS coordinates every 3 seconds |
+| SUBSCRIBE_ORDER | Client → Server | Customer/Admin | Subscribe to order delivery updates |
+| ACCEPT_ORDER | Client → Server | Delivery Person | Accept assigned order |
+| START_DELIVERY | Client → Server | Delivery Person | Begin delivery to customer |
+| COMPLETE_DELIVERY | Client → Server | Delivery Person | Complete delivery |
+| location-updated | Server → Client | All | Current location updated |
+| delivery-location-updated | Server → Client | Subscribers | Delivery person location changed |
+| order-details | Server → Client | Subscriber | Order information |
+| order-accepted | Server → Client | Subscribers | Order accepted by delivery person |
+| delivery-started | Server → Client | Subscribers | Delivery started |
+| delivery-completed | Server → Client | Subscribers | Delivery completed |
+| error | Server → Client | All | Error message |
 
 #### 3. Delivery Location Updated (Order Tracking)
 ```javascript
@@ -1518,7 +1681,7 @@ socket.on('error', (error) => {
 
 ### Update Location
 ```bash
-curl -X POST http://backend.rani-jay.com/api/location/update \
+curl -X POST http://localhost:4000/api/location/update \
   -H "token: YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1530,44 +1693,44 @@ curl -X POST http://backend.rani-jay.com/api/location/update \
 
 ### Get User Location
 ```bash
-curl -X GET http://backend.rani-jay.com/api/location/user/507f1f77bcf86cd799439011 \
+curl -X GET http://localhost:4000/api/location/user/507f1f77bcf86cd799439011 \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Get All Active Delivery Locations (Admin)
 ```bash
-curl -X GET http://backend.rani-jay.com/api/location/delivery/active/list \
+curl -X GET http://localhost:4000/api/location/delivery/active/list \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Auto-Match Delivery (Admin)
 ```bash
-curl -X POST http://backend.rani-jay.com/api/location/match/507f1f77bcf86cd799439050 \
+curl -X POST http://localhost:4000/api/location/match/507f1f77bcf86cd799439050 \
   -H "token: ADMIN_JWT_TOKEN" \
   -H "Content-Type: application/json"
 ```
 
 ### Get Order Delivery Location (Customer)
 ```bash
-curl -X GET http://backend.rani-jay.com/api/location/order/507f1f77bcf86cd799439050 \
+curl -X GET http://localhost:4000/api/location/order/507f1f77bcf86cd799439050 \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Get Location History (Admin)
 ```bash
-curl -X GET "http://backend.rani-jay.com/api/location/history/507f1f77bcf86cd799439020?days=7" \
+curl -X GET "http://localhost:4000/api/location/history/507f1f77bcf86cd799439020?days=7" \
   -H "token: ADMIN_JWT_TOKEN"
 ```
 
 ### Get Order Location History (Customer/Admin)
 ```bash
-curl -X GET http://backend.rani-jay.com/api/location/order-history/507f1f77bcf86cd799439050 \
+curl -X GET http://localhost:4000/api/location/order-history/507f1f77bcf86cd799439050 \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
 ### Toggle Location Sharing
 ```bash
-curl -X PATCH http://backend.rani-jay.com/api/location/sharing/toggle \
+curl -X PATCH http://localhost:4000/api/location/sharing/toggle \
   -H "token: YOUR_JWT_TOKEN"
 ```
 
@@ -1577,7 +1740,7 @@ curl -X PATCH http://backend.rani-jay.com/api/location/sharing/toggle \
 
 ```javascript
 // Connect to WebSocket
-const socket = io('http://backend.rani-jay.com');
+const socket = io('http://localhost:4000');
 
 // Join tracking
 socket.emit('join-tracking', userId);

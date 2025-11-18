@@ -5,11 +5,24 @@ const addToCart = async (req, res) => {
   try {
     let userData = await userModel.findById(req.body.userId);
     let cartData = await userData.cartData;
-    if (!cartData[req.body.itemId]) {
-      cartData[req.body.itemId] = 1;
+    const itemId = req.body.itemId;
+    const notes = req.body.notes || "";
+
+    if (!cartData[itemId]) {
+      // New item - create with new structure
+      cartData[itemId] = { quantity: 1, notes: notes };
     } else {
-      cartData[req.body.itemId] += 1;
+      // Item exists - handle both old and new formats
+      if (typeof cartData[itemId] === "number") {
+        // Old format: convert to new format
+        cartData[itemId] = { quantity: cartData[itemId] + 1, notes: notes };
+      } else {
+        // New format: increment quantity, update notes
+        cartData[itemId].quantity += 1;
+        cartData[itemId].notes = notes;
+      }
     }
+
     await userModel.findByIdAndUpdate(req.body.userId, { cartData });
     res.json({ success: true, message: "Added to Cart" });
   } catch (error) {
@@ -23,11 +36,31 @@ const removeFromCart = async (req, res) => {
   try {
     let userData = await userModel.findById(req.body.userId);
     let cartData = await userData.cartData;
-    if (cartData[req.body.itemId] > 1) {
-      cartData[req.body.itemId] -= 1;
-    } else {
-      delete cartData[req.body.itemId];
+    const itemId = req.body.itemId;
+
+    if (cartData[itemId]) {
+      let currentQuantity = 1;
+
+      // Handle both old and new formats
+      if (typeof cartData[itemId] === "number") {
+        currentQuantity = cartData[itemId];
+      } else if (typeof cartData[itemId] === "object" && cartData[itemId].quantity) {
+        currentQuantity = cartData[itemId].quantity;
+      }
+
+      if (currentQuantity > 1) {
+        // Decrement quantity while preserving notes
+        if (typeof cartData[itemId] === "object") {
+          cartData[itemId].quantity -= 1;
+        } else {
+          cartData[itemId] -= 1;
+        }
+      } else {
+        // Remove item completely
+        delete cartData[itemId];
+      }
     }
+
     await userModel.findByIdAndUpdate(req.body.userId, { cartData });
     res.json({ success: true, message: "Removed from Cart" });
   } catch (error) {
@@ -41,7 +74,20 @@ const getCart = async (req, res) => {
   try {
     let userData = await userModel.findById(req.body.userId);
     let cartData = await userData.cartData;
-    res.json({ success: true, cartData: cartData });
+
+    // Normalize cart data to ensure new format
+    const normalizedCartData = {};
+    for (const itemId in cartData) {
+      if (typeof cartData[itemId] === "number") {
+        // Old format: convert to new format
+        normalizedCartData[itemId] = { quantity: cartData[itemId], notes: "" };
+      } else {
+        // Already in new format
+        normalizedCartData[itemId] = cartData[itemId];
+      }
+    }
+
+    res.json({ success: true, cartData: normalizedCartData });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error" });
