@@ -8,6 +8,7 @@ const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
   const url = "https://backend.rani-jay.com";
   const [token, setToken] = useState("");
+  const [userId, setUserId] = useState("");
   const [food_list, setFoodList] = useState([]);
   const [shops, setShops] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
@@ -15,6 +16,7 @@ const StoreContextProvider = (props) => {
   const [categories, setCategories] = useState([]);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [pendingItemId, setPendingItemId] = useState(null);
+  const [shopLocation, setShopLocation] = useState(null);
 
   const addToCart = (itemId) => {
     setPendingItemId(itemId);
@@ -101,6 +103,7 @@ const StoreContextProvider = (props) => {
         setShops(response.data.shops);
         if (response.data.shops.length > 0) {
           setSelectedShop(response.data.shops[0]._id);
+          setShopLocation(response.data.shops[0].location);
         }
       }
     } catch (error) {
@@ -153,6 +156,7 @@ const StoreContextProvider = (props) => {
       );
       if (response.data.success) {
         setUserRole(response.data.user.role);
+        setUserId(response.data.user._id);
       }
     } catch (error) {
       console.error("Error fetching user role:", error);
@@ -196,6 +200,15 @@ const StoreContextProvider = (props) => {
     }
   }, [token]);
 
+  useEffect(() => {
+    if (selectedShop && shops.length > 0) {
+      const shop = shops.find(s => s._id === selectedShop);
+      if (shop) {
+        setShopLocation(shop.location);
+      }
+    }
+  }, [selectedShop, shops]);
+
   const contextValue = {
     food_list,
     cartItems,
@@ -207,6 +220,8 @@ const StoreContextProvider = (props) => {
     url,
     token,
     setToken,
+    userId,
+    setUserId,
     shops,
     selectedShop,
     setSelectedShop,
@@ -217,6 +232,8 @@ const StoreContextProvider = (props) => {
     showNoteModal,
     setShowNoteModal,
     pendingItemId,
+    shopLocation,
+    setShopLocation,
   };
   return (
     <StoreContext.Provider value={contextValue}>

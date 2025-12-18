@@ -17,6 +17,13 @@ const NearestOrders = () => {
   const markersRef = useRef([]);
   const fetchIntervalRef = useRef(null);
 
+  // Only delivery persons can access this page
+  useEffect(() => {
+    if (userRole === 'user') {
+      navigate('/myorders');
+    }
+  }, [userRole, navigate]);
+
   // Auto-tracking location
   const { location: autoLocation, error: locationError } = useAutoTracking();
 
@@ -45,9 +52,9 @@ const NearestOrders = () => {
 
     mapInstance.current = L.map(mapRef.current).setView([lat, lng], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri',
+      maxZoom: 18,
     }).addTo(mapInstance.current);
 
     addUserMarker(lat, lng);

@@ -54,9 +54,9 @@ const MapPicker = ({ latitude, longitude, onLocationSelect }) => {
       const lng = selectedLocation.lng || DEFAULT_LNG;
       const map = L.map(mapRef.current).setView([lat, lng], 13);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri',
+        maxZoom: 18,
       }).addTo(map);
 
       // Add marker

@@ -27,6 +27,7 @@ const TrackOrder = () => {
   const polylineRef = useRef(null);
   const routePointsRef = useRef([]);
   const pollingIntervalRef = useRef(null);
+  const initMapRef = useRef(false);
 
   const [order, setOrder] = useState(null);
   const [deliveryLocation, setDeliveryLocation] = useState(null);
@@ -36,11 +37,9 @@ const TrackOrder = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDelivered, setIsDelivered] = useState(false);
+  const [deliveryPerson, setDeliveryPerson] = useState(null);
 
-  // Auto-tracking (for customer to send location if needed)
   const { location: autoLocation } = useAutoTracking();
-
-  // WebSocket tracking - only initialize if user is logged in with valid ID
   const userId = token ? localStorage.getItem('userId') : null;
   const { isConnected, locationUpdates, subscribeToOrder, sendLocation } = useTracking(
     url,
@@ -49,7 +48,12 @@ const TrackOrder = () => {
     userRole || 'user'
   );
 
-  // Haversine formula to calculate distance
+  useEffect(() => {
+    if (userRole === 'user') {
+      setError('This page is only for delivery persons');
+    }
+  }, [userRole]);
+
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -64,7 +68,6 @@ const TrackOrder = () => {
     return R * c;
   };
 
-  // Format distance (km if > 1, otherwise m)
   const formatDistance = (distanceKm) => {
     if (distanceKm < 1) {
       return `${(distanceKm * 1000).toFixed(0)}m`;
@@ -72,7 +75,6 @@ const TrackOrder = () => {
     return `${distanceKm.toFixed(2)}km`;
   };
 
-  // Calculate ETA (assuming average speed of 30 km/h in city)
   const calculateETA = (distanceKm) => {
     const averageSpeed = 30;
     const hours = distanceKm / averageSpeed;
@@ -80,7 +82,6 @@ const TrackOrder = () => {
     return Math.max(minutes, 1);
   };
 
-  // Fetch order details
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
@@ -94,6 +95,20 @@ const TrackOrder = () => {
         if (response.data.order.deliveryLocation) {
           setCustomerLocation(response.data.order.deliveryLocation);
         }
+
+        if (response.data.order.assignedDeliveryPerson) {
+          try {
+            const deliveryResponse = await axios.get(
+              `${url}/api/user/${response.data.order.assignedDeliveryPerson}`,
+              { headers: { token } }
+            );
+            if (deliveryResponse.data.success) {
+              setDeliveryPerson(deliveryResponse.data.user);
+            }
+          } catch (err) {
+            console.error('Error fetching delivery person:', err);
+          }
+        }
       } else {
         setError(response.data.message || 'Failed to fetch order details');
       }
@@ -105,81 +120,107 @@ const TrackOrder = () => {
     }
   };
 
-  // Initialize map
   const initializeMap = () => {
-    if (mapInstance.current || !mapRef.current) return;
+    if (initMapRef.current || !mapRef.current) return;
+    if (!customerLocation || !customerLocation.latitude || !customerLocation.longitude) return;
 
-    const defaultCenter = [36.737, 3.0588];
-    const center = customerLocation
-      ? [customerLocation.latitude, customerLocation.longitude]
-      : defaultCenter;
+    try {
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
+      }
 
-    mapInstance.current = L.map(mapRef.current).setView(center, 15);
+      const center = [customerLocation.latitude, customerLocation.longitude];
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(mapInstance.current);
+      const map = L.map(mapRef.current, {
+        center: center,
+        zoom: 15,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        preferCanvas: true,
+        attributionControl: true,
+      });
 
-    if (customerLocation) {
+      const tileLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxZoom: 18,
+          minZoom: 0,
+          attribution: 'Tiles © Esri',
+          errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+        }
+      );
+
+      tileLayer.addTo(map);
+      map.invalidateSize();
+
+      const customerIcon = L.icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [32, 41],
+        iconAnchor: [16, 41],
+        popupAnchor: [0, -41],
+        shadowSize: [41, 41],
+      });
+
       customMarkerRef.current = L.marker([customerLocation.latitude, customerLocation.longitude], {
         title: 'Customer Delivery Address',
-        icon: L.icon({
-          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-          iconSize: [32, 41],
-          iconAnchor: [16, 41],
-          popupAnchor: [0, -41],
-        }),
-      })
-        .addTo(mapInstance.current)
-        .bindPopup(`<div class="popup-content"><strong>📍 Delivery Address</strong><br/>${order?.address || 'Customer Location'}</div>`);
+        icon: customerIcon,
+      }).addTo(map).bindPopup('Delivery Location');
+
+      mapInstance.current = map;
+      initMapRef.current = true;
+      console.log('Map initialized successfully at', center);
+    } catch (err) {
+      console.error('Error initializing map:', err);
+      setError('Failed to initialize map');
     }
   };
 
-  // Update delivery marker and polyline
   const updateDeliveryMarker = (location) => {
     if (!location || !location.latitude || !location.longitude || !mapInstance.current) return;
 
-    if (deliveryMarkerRef.current) {
-      mapInstance.current.removeLayer(deliveryMarkerRef.current);
-    }
-
-    deliveryMarkerRef.current = L.marker(
-      [location.latitude, location.longitude],
-      {
-        title: 'Delivery Person',
-        icon: L.icon({
-          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-          iconSize: [32, 41],
-          iconAnchor: [16, 41],
-          popupAnchor: [0, -41],
-        }),
+    try {
+      if (deliveryMarkerRef.current) {
+        mapInstance.current.removeLayer(deliveryMarkerRef.current);
       }
-    )
-      .addTo(mapInstance.current)
-      .bindPopup('<div class="popup-content"><strong>🛵 Delivery Person</strong><br/>Current Location</div>');
 
-    routePointsRef.current.push([location.latitude, location.longitude]);
+      deliveryMarkerRef.current = L.marker(
+        [location.latitude, location.longitude],
+        {
+          title: 'Delivery Person',
+          icon: L.icon({
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+            iconSize: [32, 41],
+            iconAnchor: [16, 41],
+            popupAnchor: [0, -41],
+          }),
+        }
+      ).addTo(mapInstance.current);
 
-    if (routePointsRef.current.length > 1) {
-      if (polylineRef.current) {
-        mapInstance.current.removeLayer(polylineRef.current);
+      routePointsRef.current.push([location.latitude, location.longitude]);
+
+      if (routePointsRef.current.length > 1) {
+        if (polylineRef.current) {
+          mapInstance.current.removeLayer(polylineRef.current);
+        }
+        polylineRef.current = L.polyline(routePointsRef.current, {
+          color: '#ff6b35',
+          weight: 3,
+          opacity: 0.7,
+          dashArray: '5, 5',
+        }).addTo(mapInstance.current);
       }
-      polylineRef.current = L.polyline(routePointsRef.current, {
-        color: '#ff6b35',
-        weight: 3,
-        opacity: 0.7,
-        dashArray: '5, 5',
-      }).addTo(mapInstance.current);
-    }
 
-    if (customMarkerRef.current && deliveryMarkerRef.current) {
-      const group = new L.featureGroup([customMarkerRef.current, deliveryMarkerRef.current]);
-      mapInstance.current.fitBounds(group.getBounds(), { padding: [50, 50] });
+      if (customMarkerRef.current && deliveryMarkerRef.current) {
+        const group = new L.featureGroup([customMarkerRef.current, deliveryMarkerRef.current]);
+        mapInstance.current.fitBounds(group.getBounds(), { padding: [50, 50] });
+      }
+    } catch (err) {
+      console.error('Error updating delivery marker:', err);
     }
   };
 
-  // Fallback: Poll for delivery location
   const pollDeliveryLocation = () => {
     const intervalId = setInterval(async () => {
       try {
@@ -203,7 +244,6 @@ const TrackOrder = () => {
     return intervalId;
   };
 
-  // Mark order as delivered
   const markDelivered = async () => {
     if (!token) {
       setError('Please login first');
@@ -232,14 +272,12 @@ const TrackOrder = () => {
     }
   };
 
-  // Send customer location if available
   useEffect(() => {
     if (autoLocation && isConnected) {
       sendLocation(autoLocation.latitude, autoLocation.longitude, autoLocation.accuracy);
     }
   }, [autoLocation, isConnected, sendLocation]);
 
-  // Update distance and ETA
   useEffect(() => {
     if (customerLocation && deliveryLocation) {
       const distKm = calculateDistance(
@@ -253,7 +291,6 @@ const TrackOrder = () => {
     }
   }, [deliveryLocation, customerLocation]);
 
-  // Fetch order on mount
   useEffect(() => {
     if (!token) {
       setError('Please login first');
@@ -262,10 +299,13 @@ const TrackOrder = () => {
     fetchOrderDetails();
   }, [orderId, token]);
 
-  // Initialize map and subscribe to order
   useEffect(() => {
-    if (order && customerLocation && !isDelivered) {
-      initializeMap();
+    if (order && !isDelivered) {
+      if (customerLocation) {
+        initializeMap();
+      } else if (order.deliveryLocation) {
+        setCustomerLocation(order.deliveryLocation);
+      }
 
       if (isConnected) {
         subscribeToOrder(orderId);
@@ -279,9 +319,8 @@ const TrackOrder = () => {
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [order, customerLocation, isConnected, orderId, subscribeToOrder]);
+  }, [order, customerLocation, isConnected, orderId]);
 
-  // Handle location updates from WebSocket
   useEffect(() => {
     if (locationUpdates[orderId]) {
       const location = locationUpdates[orderId];
@@ -337,6 +376,12 @@ const TrackOrder = () => {
               <span className="label">Status:</span>
               <span className="value">{order?.status || 'In Progress'}</span>
             </div>
+            {order?.assignedAt && (
+              <div className="status-item">
+                <span className="label">Accepted:</span>
+                <span className="value">✓ Yes</span>
+              </div>
+            )}
             {distance !== null && (
               <div className="status-item">
                 <span className="label">Distance:</span>
@@ -365,6 +410,40 @@ const TrackOrder = () => {
               </p>
             </div>
           </div>
+
+          <div className="info-section">
+            <h3>Customer Information</h3>
+            <div className="customer-details">
+              <p>
+                <strong>Name:</strong> {order?.customerName || 'Not provided'}
+              </p>
+              <p>
+                <strong>Phone:</strong> {order?.address?.phone || 'Not provided'}
+              </p>
+              <p>
+                <strong>Email:</strong> {order?.customerEmail || 'Not provided'}
+              </p>
+              {order?.deliveryLocation && (
+                <p>
+                  <strong>Delivery Location:</strong> ({order.deliveryLocation.latitude?.toFixed(4)}, {order.deliveryLocation.longitude?.toFixed(4)})
+                </p>
+              )}
+            </div>
+          </div>
+
+          {order?.assignedDeliveryPerson && deliveryPerson && (
+            <div className="info-section">
+              <h3>Delivery Person</h3>
+              <div className="delivery-person-details">
+                <p>
+                  <strong>Name:</strong> {deliveryPerson?.name || 'Not provided'}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {deliveryPerson?.phone || 'Not provided'}
+                </p>
+              </div>
+            </div>
+          )}
 
           {!isDelivered && deliveryLocation && distance !== null && distance <= 0.5 && (
             <button className="delivered-btn" onClick={markDelivered}>

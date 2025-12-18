@@ -65,7 +65,9 @@ const verifyOrder = async (req, res) => {
 // user orders for frontend
 const userOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({ userId: req.body.userId });
+    const orders = await orderModel
+      .find({ userId: req.body.userId })
+      .populate('assignedDeliveryPerson', 'name phone email lastKnownLocation');
     res.json({ success: true, data: orders });
   } catch (error) {
     console.log(error);
@@ -333,9 +335,17 @@ const getOrder = async (req, res) => {
       return res.json({ success: false, message: "Unauthorized access to order" });
     }
 
+    // Include customer details in response
+    const orderData = order.toObject();
+    const customerUser = await userModel.findById(order.userId);
+    if (customerUser) {
+      orderData.customerName = customerUser.name;
+      orderData.customerEmail = customerUser.email;
+    }
+
     res.json({
       success: true,
-      order: order,
+      order: orderData,
     });
   } catch (error) {
     console.error("Get order error:", error);

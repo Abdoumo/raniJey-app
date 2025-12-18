@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const deliveryIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-green.png',
+  iconUrl: 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-2x-green.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -24,7 +24,7 @@ const deliveryIcon = L.icon({
 });
 
 const customerIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-red.png',
+  iconUrl: 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -69,6 +69,12 @@ const DeliveryPersonOrderDetails = () => {
       setError(null);
 
       const userId = localStorage.getItem('userId');
+
+      if (!userId) {
+        setError('User not logged in');
+        return;
+      }
+
       const orderResponse = await axios.post(
         `${url}/api/order/userorders`,
         {},
@@ -87,7 +93,7 @@ const DeliveryPersonOrderDetails = () => {
         return;
       }
 
-      if (currentOrder.assignedDeliveryPerson !== userId) {
+      if (currentOrder.assignedDeliveryPerson?.toString() !== userId) {
         setError('This order is not assigned to you');
         return;
       }
@@ -109,8 +115,8 @@ const DeliveryPersonOrderDetails = () => {
         }
       }
 
-      // Fetch delivery person location (you)
-      if (userId) {
+      // Fetch delivery person location (you) - use current order's assigned delivery person
+      if (userId && currentOrder.assignedDeliveryPerson) {
         try {
           const deliveryResponse = await axios.get(`${url}/api/user/${userId}`, {
             headers: { token },
@@ -118,24 +124,13 @@ const DeliveryPersonOrderDetails = () => {
 
           if (deliveryResponse.data.success && deliveryResponse.data.user.lastKnownLocation) {
             setDeliveryPersonLocation(deliveryResponse.data.user.lastKnownLocation);
+          } else if (deliveryResponse.data.success) {
+            // If no lastKnownLocation yet, set a default or empty location
+            console.log('Delivery person location not yet available');
           }
         } catch (err) {
           console.error('Error fetching delivery person location:', err);
         }
-      }
-
-      // Calculate distance if we have both locations
-      if (
-        currentOrder.deliveryLocation?.latitude &&
-        deliveryPersonLocation?.latitude
-      ) {
-        const dist = calculateDistance(
-          deliveryPersonLocation.latitude,
-          deliveryPersonLocation.longitude,
-          currentOrder.deliveryLocation.latitude,
-          currentOrder.deliveryLocation.longitude
-        );
-        setDistance(dist);
       }
     } catch (err) {
       console.error('Error fetching order data:', err);
@@ -151,16 +146,32 @@ const DeliveryPersonOrderDetails = () => {
     }
   }, [token, orderId, url]);
 
+  // Calculate distance when both locations are available
+  useEffect(() => {
+    if (
+      order &&
+      deliveryPersonLocation?.latitude &&
+      order.deliveryLocation?.latitude
+    ) {
+      const dist = calculateDistance(
+        deliveryPersonLocation.latitude,
+        deliveryPersonLocation.longitude,
+        order.deliveryLocation.latitude,
+        order.deliveryLocation.longitude
+      );
+      setDistance(dist);
+    }
+  }, [order, deliveryPersonLocation]);
+
   useEffect(() => {
     if (!order || !mapRef.current) return;
 
     if (!mapInstance.current) {
       mapInstance.current = L.map(mapRef.current).setView([0, 0], 13);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri',
+        maxZoom: 18,
       }).addTo(mapInstance.current);
     }
 

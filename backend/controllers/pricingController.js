@@ -181,7 +181,7 @@ const calculateDeliveryPrice = async (req, res) => {
         { maxDistance: null },
         { maxDistance: { $gte: distance } }
       ]
-    });
+    }).lean();
 
     if (!pricingTier) {
       return res.json({ success: false, message: "No applicable pricing found for this distance" });

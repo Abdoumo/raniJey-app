@@ -36,8 +36,63 @@ export const useAutoTracking = () => {
     }
   }, []);
 
+  // Start continuous location tracking
+  const startContinuousTracking = useCallback(() => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    if (isTracking) {
+      return;
+    }
+
+    setIsTracking(true);
+    setError(null);
+
+    // Watch position for continuous updates
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const newLocation = {
+          latitude,
+          longitude,
+          accuracy,
+          timestamp: new Date().toISOString(),
+        };
+        setLocation(newLocation);
+
+        // Send to backend via WebSocket
+        if (trackingService.isReady()) {
+          trackingService.sendLocation(latitude, longitude, accuracy);
+        }
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setError('Location permission was denied');
+          setIsTracking(false);
+          if (watchIdRef.current !== null) {
+            navigator.geolocation.clearWatch(watchIdRef.current);
+            watchIdRef.current = null;
+          }
+        } else if (err.code === err.TIMEOUT) {
+          // Timeout is normal on poor GPS connections, just log it without showing error
+          console.debug('Watch position timeout - retrying with next update');
+        } else {
+          console.error('Watch position error:', err);
+          setError(`Tracking error: ${err.message}`);
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 5000,
+      }
+    );
+  }, [isTracking]);
+
   // Request geolocation permission and start tracking
-  const requestLocationPermission = useCallback(async () => {
+  const requestLocationPermission = useCallback(async (quickLocation = false) => {
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by your browser');
       return;
@@ -51,6 +106,17 @@ export const useAutoTracking = () => {
 
     // Check if permission is already granted
     const permissionState = await checkPermissionStatus();
+
+    // For quick location (delivery fee), use faster settings
+    const locationOptions = quickLocation ? {
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000
+    } : {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    };
 
     if (permissionState === 'granted') {
       // Permission already granted, get location directly without dialog
@@ -67,9 +133,42 @@ export const useAutoTracking = () => {
           setHasPermission(true);
           setError(null);
           localStorage.setItem('geolocation_permission_granted', 'true');
-          startContinuousTracking();
+          if (!quickLocation) {
+            startContinuousTracking();
+          }
         },
         (err) => {
+          if (quickLocation) {
+            // For quick location, silently retry with lower accuracy
+            setTimeout(() => {
+              navigator.geolocation.getCurrentPosition(
+                (retryPosition) => {
+                  const { latitude, longitude, accuracy } = retryPosition.coords;
+                  const newLocation = {
+                    latitude,
+                    longitude,
+                    accuracy,
+                    timestamp: new Date().toISOString(),
+                  };
+                  setLocation(newLocation);
+                  setHasPermission(true);
+                  setError(null);
+                  localStorage.setItem('geolocation_permission_granted', 'true');
+                },
+                () => {
+                  console.debug('Quick location retry failed, will use fallback');
+                  setHasPermission(true);
+                  setPermissionRequested(false);
+                },
+                {
+                  enableHighAccuracy: false,
+                  timeout: 8000,
+                  maximumAge: 120000,
+                }
+              );
+            }, 300);
+            return;
+          }
           setPermissionRequested(false);
           if (err.code === err.PERMISSION_DENIED) {
             setError('Location permission was denied. You can enable it in browser settings.');
@@ -97,7 +196,7 @@ export const useAutoTracking = () => {
                 },
                 {
                   enableHighAccuracy: false,
-                  timeout: 20000,
+                  timeout: 5000,
                   maximumAge: 60000,
                 }
               );
@@ -106,11 +205,7 @@ export const useAutoTracking = () => {
             setError(`Geolocation error: ${err.message}`);
           }
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 30000,
-          maximumAge: 0,
-        }
+        locationOptions
       );
     } else if (permissionState === 'denied') {
       // Permission explicitly denied
@@ -178,62 +273,7 @@ export const useAutoTracking = () => {
         }
       );
     }
-  }, [permissionRequested, checkPermissionStatus, startContinuousTracking]);
-
-  // Start continuous location tracking
-  const startContinuousTracking = useCallback(() => {
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
-      return;
-    }
-
-    if (isTracking) {
-      return;
-    }
-
-    setIsTracking(true);
-    setError(null);
-
-    // Watch position for continuous updates
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        const newLocation = {
-          latitude,
-          longitude,
-          accuracy,
-          timestamp: new Date().toISOString(),
-        };
-        setLocation(newLocation);
-
-        // Send to backend via WebSocket
-        if (trackingService.isReady()) {
-          trackingService.sendLocation(latitude, longitude, accuracy);
-        }
-      },
-      (err) => {
-        if (err.code === err.PERMISSION_DENIED) {
-          setError('Location permission was denied');
-          setIsTracking(false);
-          if (watchIdRef.current !== null) {
-            navigator.geolocation.clearWatch(watchIdRef.current);
-            watchIdRef.current = null;
-          }
-        } else if (err.code === err.TIMEOUT) {
-          // Timeout is normal on poor GPS connections, just log it without showing error
-          console.debug('Watch position timeout - retrying with next update');
-        } else {
-          console.error('Watch position error:', err);
-          setError(`Tracking error: ${err.message}`);
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 30000,
-        maximumAge: 5000,
-      }
-    );
-  }, [isTracking]);
+  }, [permissionRequested, checkPermissionStatus]);
 
   // Stop continuous tracking
   const stopContinuousTracking = useCallback(() => {
@@ -247,9 +287,9 @@ export const useAutoTracking = () => {
   // On mount: Check for previously granted permission and auto-start
   useEffect(() => {
     const hasStoredPermission = checkStoredPermission();
-    if (hasStoredPermission) {
-      // User previously granted permission, auto-start tracking
-      requestLocationPermission();
+    if (hasStoredPermission && !permissionRequested) {
+      // User previously granted permission, use fast location for delivery fee calculation
+      requestLocationPermission(true);
     }
 
     // Cleanup on unmount
@@ -261,7 +301,7 @@ export const useAutoTracking = () => {
         clearTimeout(permissionTimeoutRef.current);
       }
     };
-  }, [checkStoredPermission, requestLocationPermission]);
+  }, []);
 
   return {
     location,

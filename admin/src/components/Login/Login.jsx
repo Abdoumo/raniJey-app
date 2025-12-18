@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 const Login = ({ url }) => {
   const navigate = useNavigate();
-  const { admin, setAdmin, token, setToken, setUserRole, setUserName } = useContext(StoreContext);
+  const { admin, setAdmin, token, setToken, setUserRole, setUserName, setUserId } = useContext(StoreContext);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
     email: "",
@@ -26,19 +26,37 @@ const Login = ({ url }) => {
     try {
       const response = await axios.post(url + "/api/user/login", data);
       if (response.data.success) {
-        if (response.data.role === "admin") {
-          setToken(response.data.token);
-          setAdmin(true);
-          setUserRole(response.data.role);
-          setUserName(response.data.name || "Admin");
-          localStorage.setItem("token", response.data.token);
-          localStorage.setItem("admin", JSON.stringify(true));
-          localStorage.setItem("userRole", response.data.role);
-          localStorage.setItem("userName", response.data.name || "Admin");
+        const userRole = response.data.role;
+        const isAdmin = userRole === "admin";
+        const isDelivery = userRole === "delivery" || userRole === "livreur";
+
+        if (isAdmin || isDelivery) {
+          const loginToken = response.data.token;
+          setToken(loginToken);
+          setAdmin(isAdmin);
+          setUserRole(userRole);
+          setUserName(response.data.name || userRole);
+          localStorage.setItem("token", loginToken);
+          localStorage.setItem("admin", JSON.stringify(isAdmin));
+          localStorage.setItem("userRole", userRole);
+          localStorage.setItem("userName", response.data.name || userRole);
+
+          try {
+            const profileResponse = await axios.get(url + "/api/user/profile", {
+              headers: { token: loginToken },
+            });
+            if (profileResponse.data.success && profileResponse.data.user._id) {
+              setUserId(profileResponse.data.user._id);
+              localStorage.setItem("userId", profileResponse.data.user._id);
+            }
+          } catch (err) {
+            console.error("Error fetching user profile:", err);
+          }
+
           toast.success("Login Successfully");
-          navigate("/add");
+          navigate(isAdmin ? "/add" : "/order-tracking");
         } else {
-          toast.error("You are not an admin");
+          toast.error("Only admin and delivery personnel can access this app");
         }
       } else {
         toast.error(response.data.message);

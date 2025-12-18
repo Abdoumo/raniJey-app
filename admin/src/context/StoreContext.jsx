@@ -8,6 +8,7 @@ const StoreContextProvider = (props) => {
   const [admin, setAdmin] = useState(false);
   const [userRole, setUserRole] = useState("");
   const [userName, setUserName] = useState("");
+  const [userId, setUserId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
 
@@ -25,6 +26,9 @@ const StoreContextProvider = (props) => {
       if (localStorage.getItem("userName")) {
         setUserName(localStorage.getItem("userName"));
       }
+      if (localStorage.getItem("userId")) {
+        setUserId(localStorage.getItem("userId"));
+      }
       setIsLoading(false);
     }
     loadData();
@@ -39,6 +43,8 @@ const StoreContextProvider = (props) => {
     setUserRole,
     userName,
     setUserName,
+    userId,
+    setUserId,
     isLoading,
   };
   return (

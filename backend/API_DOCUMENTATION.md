@@ -320,6 +320,132 @@ PATCH /toggle-status/507f1f77bcf86cd799439011
 
 ---
 
+### Get User by ID (Public)
+**Endpoint:** `GET /:id`
+
+**Description:** Get user profile by user ID (public access)
+
+**Parameters:**
+- `id` (string): MongoDB user ID
+
+**Example:**
+```
+GET /507f1f77bcf86cd799439011
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "user": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@gmail.com",
+    "role": "user",
+    "cartData": {}
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+---
+
+## cURL Examples
+
+### Register
+```bash
+curl -X POST https://backend.rani-jay.com/api/user/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@gmail.com",
+    "password": "password123"
+  }'
+```
+
+### Login
+```bash
+curl -X POST https://backend.rani-jay.com/api/user/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@gmail.com",
+    "password": "password123"
+  }'
+```
+
+### Get Profile (Protected)
+```bash
+curl -X GET https://backend.rani-jay.com/api/user/profile \
+  -H "token: YOUR_JWT_TOKEN"
+```
+
+### Update Profile (Protected)
+```bash
+curl -X PUT https://backend.rani-jay.com/api/user/profile \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Updated",
+    "email": "john.new@gmail.com"
+  }'
+```
+
+### Delete Account (Protected)
+```bash
+curl -X DELETE https://backend.rani-jay.com/api/user/profile \
+  -H "token: YOUR_JWT_TOKEN"
+```
+
+### Get User by ID (Public)
+```bash
+curl https://backend.rani-jay.com/api/user/507f1f77bcf86cd799439011
+```
+
+### Get All Users (Admin Only)
+```bash
+curl -X GET https://backend.rani-jay.com/api/user/list/all \
+  -H "token: ADMIN_JWT_TOKEN"
+```
+
+### Toggle User Account Status (Admin Only)
+```bash
+curl -X PATCH https://backend.rani-jay.com/api/user/toggle-status/507f1f77bcf86cd799439011 \
+  -H "token: ADMIN_JWT_TOKEN"
+```
+
+---
+
+## Error Codes
+
+| Message | Cause |
+|---------|-------|
+| `User already exists` | Email already registered |
+| `Please enter valid email` | Invalid email format |
+| `Please enter strong password` | Password less than 8 characters |
+| `Invalid Credentials` | Wrong email or password |
+| `User not found` | User ID doesn't exist |
+| `Email already in use` | Email taken by another user |
+| `Not Authorized Login Again` | Missing or invalid token |
+| `Error` | Server error |
+
+---
+
+## Notes
+
+- All protected endpoints require a valid JWT token in the `token` header
+- Passwords are hashed using bcrypt before storage
+- User passwords are never returned in responses
+- Cart data is stored with each user for shopping functionality
+
+---
+
 ---
 
 # Shop Management API
@@ -611,134 +737,6 @@ curl https://backend.rani-jay.com/api/shop/list?type=restaurant
 ```bash
 curl https://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011
 ```
-
----
-
-## Public Endpoints
-
-### Get User by ID
-**Endpoint:** `GET /:id`
-
-**Description:** Get user profile by user ID (public access)
-
-**Parameters:**
-- `id` (string): MongoDB user ID
-
-**Example:**
-```
-GET /507f1f77bcf86cd799439011
-```
-
-**Response (Success):**
-```json
-{
-  "success": true,
-  "user": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "John Doe",
-    "email": "john@gmail.com",
-    "role": "user",
-    "cartData": {}
-  }
-}
-```
-
-**Response (Error):**
-```json
-{
-  "success": false,
-  "message": "User not found"
-}
-```
-
----
-
-## cURL Examples
-
-### Register
-```bash
-curl -X POST https://backend.rani-jay.com/api/user/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@gmail.com",
-    "password": "password123"
-  }'
-```
-
-### Login
-```bash
-curl -X POST https://backend.rani-jay.com/api/user/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "john@gmail.com",
-    "password": "password123"
-  }'
-```
-
-### Get Profile (Protected)
-```bash
-curl -X GET https://backend.rani-jay.com/api/user/profile \
-  -H "token: YOUR_JWT_TOKEN"
-```
-
-### Update Profile (Protected)
-```bash
-curl -X PUT https://backend.rani-jay.com/api/user/profile \
-  -H "token: YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Updated",
-    "email": "john.new@gmail.com"
-  }'
-```
-
-### Delete Account (Protected)
-```bash
-curl -X DELETE https://backend.rani-jay.com/api/user/profile \
-  -H "token: YOUR_JWT_TOKEN"
-```
-
-### Get User by ID (Public)
-```bash
-curl https://backend.rani-jay.com/api/user/507f1f77bcf86cd799439011
-```
-
-### Get All Users (Admin Only)
-```bash
-curl -X GET https://backend.rani-jay.com/api/user/list/all \
-  -H "token: ADMIN_JWT_TOKEN"
-```
-
-### Toggle User Account Status (Admin Only)
-```bash
-curl -X PATCH https://backend.rani-jay.com/api/user/toggle-status/507f1f77bcf86cd799439011 \
-  -H "token: ADMIN_JWT_TOKEN"
-```
-
----
-
-## Error Codes
-
-| Message | Cause |
-|---------|-------|
-| `User already exists` | Email already registered |
-| `Please enter valid email` | Invalid email format |
-| `Please enter strong password` | Password less than 8 characters |
-| `Invalid Credentials` | Wrong email or password |
-| `User not found` | User ID doesn't exist |
-| `Email already in use` | Email taken by another user |
-| `Not Authorized Login Again` | Missing or invalid token |
-| `Error` | Server error |
-
----
-
-## Notes
-
-- All protected endpoints require a valid JWT token in the `token` header
-- Passwords are hashed using bcrypt before storage
-- User passwords are never returned in responses
-- Cart data is stored with each user for shopping functionality
 
 ---
 
@@ -1166,6 +1164,1116 @@ curl https://backend.rani-jay.com/api/category/507f1f77bcf86cd799439031
 
 ---
 
+# Shopping Cart API
+
+## Base URL
+`https://backend.rani-jay.com/api/cart`
+
+---
+
+## Protected Endpoints (Requires JWT Token)
+
+### Add Item to Cart
+**Endpoint:** `POST /add`
+
+**Description:** Add a food item to user's cart with optional notes
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439011",
+  "itemId": "507f1f77bcf86cd799439021",
+  "notes": "Extra cheese, no onions"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Added to Cart"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+**Notes:**
+- If item already exists in cart, quantity is incremented
+- Notes are optional and can be used for special instructions
+- Cart data is normalized to new format automatically
+
+---
+
+### Remove Item from Cart
+**Endpoint:** `POST /remove`
+
+**Description:** Remove or decrement an item from user's cart
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439011",
+  "itemId": "507f1f77bcf86cd799439021"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Removed from Cart"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+**Notes:**
+- If quantity is greater than 1, quantity is decremented by 1
+- If quantity is 1, item is completely removed from cart
+- Returns success even if item doesn't exist in cart
+
+---
+
+### Get User Cart
+**Endpoint:** `POST /get`
+
+**Description:** Retrieve current user's shopping cart
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439011"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "cartData": {
+    "507f1f77bcf86cd799439021": {
+      "quantity": 2,
+      "notes": "Extra cheese, no onions"
+    },
+    "507f1f77bcf86cd799439022": {
+      "quantity": 1,
+      "notes": ""
+    }
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+**Notes:**
+- Cart data is automatically normalized to new format
+- Each item contains quantity and notes
+- Empty cart returns empty object
+
+---
+
+## cURL Examples
+
+### Add Item to Cart
+```bash
+curl -X POST https://backend.rani-jay.com/api/cart/add \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439011",
+    "itemId": "507f1f77bcf86cd799439021",
+    "notes": "Extra cheese, no onions"
+  }'
+```
+
+### Remove Item from Cart
+```bash
+curl -X POST https://backend.rani-jay.com/api/cart/remove \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439011",
+    "itemId": "507f1f77bcf86cd799439021"
+  }'
+```
+
+### Get Cart
+```bash
+curl -X POST https://backend.rani-jay.com/api/cart/get \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "507f1f77bcf86cd799439011"}'
+```
+
+---
+
+---
+
+# Order Management API
+
+## Base URL
+`https://backend.rani-jay.com/api/order`
+
+---
+
+## Customer Endpoints (Requires JWT Token)
+
+### Place Order
+**Endpoint:** `POST /place`
+
+**Description:** Create a new order from cart items
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439011",
+  "items": [
+    {
+      "itemId": "507f1f77bcf86cd799439021",
+      "name": "Pasta Carbonara",
+      "price": 12.99,
+      "quantity": 2,
+      "notes": "Extra cheese"
+    }
+  ],
+  "amount": 25.98,
+  "address": "123 Main St, City",
+  "deliveryLocation": {
+    "latitude": 40.7128,
+    "longitude": -74.0060
+  }
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Order placed successfully. Please pay on delivery.",
+  "orderId": "507f1f77bcf86cd799439050"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "Cart is empty"
+}
+```
+
+**Validation:**
+- `userId`: Required
+- `items`: Required, must not be empty
+- `address`: Required
+- `amount`: Required, numeric
+- `deliveryLocation`: Optional (latitude and longitude)
+
+---
+
+### Get User Orders
+**Endpoint:** `POST /userorders`
+
+**Description:** Get all orders for current user
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439011"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439050",
+      "userId": "507f1f77bcf86cd799439011",
+      "items": [
+        {
+          "itemId": "507f1f77bcf86cd799439021",
+          "name": "Pasta Carbonara",
+          "price": 12.99,
+          "quantity": 2,
+          "notes": "Extra cheese"
+        }
+      ],
+      "amount": 25.98,
+      "address": "123 Main St, City",
+      "status": "Pending",
+      "payment": true,
+      "assignedDeliveryPerson": "507f1f77bcf86cd799439020",
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### Get Order Details
+**Endpoint:** `GET /:orderId`
+
+**Description:** Get details of a specific order (Customer, Delivery Person, or Admin can access)
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+```
+
+**Parameters:**
+- `orderId` (string): Order ID
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "order": {
+    "_id": "507f1f77bcf86cd799439050",
+    "userId": "507f1f77bcf86cd799439011",
+    "items": [...],
+    "amount": 25.98,
+    "address": "123 Main St, City",
+    "status": "Accepted",
+    "payment": true,
+    "assignedDeliveryPerson": "507f1f77bcf86cd799439020",
+    "customerName": "John Doe",
+    "customerEmail": "john@gmail.com",
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "Unauthorized access to order"
+}
+```
+
+---
+
+## Admin Endpoints (Requires JWT Token with Admin Role)
+
+### List All Orders
+**Endpoint:** `GET /list`
+
+**Description:** Get all orders in the system (Admin only)
+
+**Headers:**
+```
+token: ADMIN_JWT_TOKEN
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439050",
+      "userId": "507f1f77bcf86cd799439011",
+      "items": [...],
+      "amount": 25.98,
+      "address": "123 Main St, City",
+      "status": "Pending",
+      "payment": true,
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### Update Order Status
+**Endpoint:** `POST /status`
+
+**Description:** Update the status of an order (Admin only)
+
+**Headers:**
+```
+token: ADMIN_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439012",
+  "orderId": "507f1f77bcf86cd799439050",
+  "status": "Pending"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Status Updated Successfully"
+}
+```
+
+**Valid Status Values:**
+- `Pending` - Order placed, awaiting assignment
+- `Accepted` - Assigned to delivery person
+- `Delivered` - Order delivered to customer
+- `Cancelled` - Order cancelled
+
+---
+
+## Delivery Person Endpoints (Requires JWT Token with Delivery Role)
+
+### Get Available Orders
+**Endpoint:** `GET /available`
+
+**Description:** Get all available orders not yet assigned to any delivery person
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "totalOrders": 5,
+  "orders": [
+    {
+      "_id": "507f1f77bcf86cd799439050",
+      "userId": "507f1f77bcf86cd799439011",
+      "items": [...],
+      "amount": 25.98,
+      "address": "123 Main St, City",
+      "status": "Pending",
+      "payment": true
+    }
+  ]
+}
+```
+
+---
+
+### Get Nearest Orders
+**Endpoint:** `GET /nearest?latitude=40.7128&longitude=-74.0060`
+
+**Description:** Get available orders sorted by distance from delivery person's location
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+```
+
+**Query Parameters:**
+- `latitude` (required): Current latitude
+- `longitude` (required): Current longitude
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "totalOrders": 5,
+  "orders": [
+    {
+      "_id": "507f1f77bcf86cd799439050",
+      "userId": "507f1f77bcf86cd799439011",
+      "items": [...],
+      "amount": 25.98,
+      "address": "123 Main St, City",
+      "status": "Pending",
+      "distance": 2.5,
+      "deliveryLocation": {
+        "latitude": 40.7150,
+        "longitude": -74.0050
+      }
+    }
+  ]
+}
+```
+
+**Notes:**
+- Orders are filtered to 50km radius
+- Returns up to 20 closest orders
+- Orders without delivery location are shown after distance-sorted orders
+- Distance is null for orders without location data
+
+---
+
+### Get Pending Orders
+**Endpoint:** `GET /pending`
+
+**Description:** Get all pending orders (not yet delivered or cancelled)
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "totalOrders": 3,
+  "orders": [
+    {
+      "_id": "507f1f77bcf86cd799439050",
+      "userId": "507f1f77bcf86cd799439011",
+      "items": [...],
+      "amount": 25.98,
+      "status": "Pending"
+    }
+  ]
+}
+```
+
+---
+
+### Accept Order
+**Endpoint:** `POST /accept`
+
+**Description:** Accept an order for delivery
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439020",
+  "orderId": "507f1f77bcf86cd799439050"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Order accepted successfully",
+  "order": {
+    "_id": "507f1f77bcf86cd799439050",
+    "userId": "507f1f77bcf86cd799439011",
+    "items": [...],
+    "amount": 25.98,
+    "status": "Accepted",
+    "assignedDeliveryPerson": "507f1f77bcf86cd799439020",
+    "assignedAt": "2024-01-15T10:35:00Z"
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "Order has already been assigned to another delivery person"
+}
+```
+
+---
+
+### Mark Order as Delivered
+**Endpoint:** `POST /delivered`
+
+**Description:** Mark an accepted order as delivered
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439020",
+  "orderId": "507f1f77bcf86cd799439050"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Order marked as delivered",
+  "order": {
+    "_id": "507f1f77bcf86cd799439050",
+    "userId": "507f1f77bcf86cd799439011",
+    "items": [...],
+    "status": "Delivered",
+    "deliveredAt": "2024-01-15T10:50:00Z"
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "You are not assigned to this order"
+}
+```
+
+---
+
+## Payment Endpoints
+
+### Verify Order Payment
+**Endpoint:** `POST /verify`
+
+**Description:** Verify payment for an order (typically called by payment gateway)
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "orderId": "507f1f77bcf86cd799439050",
+  "success": "true"
+}
+```
+
+**Response (Success - Payment Confirmed):**
+```json
+{
+  "success": true,
+  "message": "Paid"
+}
+```
+
+**Response (Failed Payment):**
+```json
+{
+  "success": false,
+  "message": "Not Paid"
+}
+```
+
+**Notes:**
+- When success is "true", order is marked as paid
+- When success is not "true", order is deleted
+- This endpoint is used for payment gateway integration
+
+---
+
+## cURL Examples
+
+### Place Order
+```bash
+curl -X POST https://backend.rani-jay.com/api/order/place \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439011",
+    "items": [
+      {
+        "itemId": "507f1f77bcf86cd799439021",
+        "name": "Pasta Carbonara",
+        "price": 12.99,
+        "quantity": 2,
+        "notes": "Extra cheese"
+      }
+    ],
+    "amount": 25.98,
+    "address": "123 Main St, City",
+    "deliveryLocation": {
+      "latitude": 40.7128,
+      "longitude": -74.0060
+    }
+  }'
+```
+
+### Get User Orders
+```bash
+curl -X POST https://backend.rani-jay.com/api/order/userorders \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "507f1f77bcf86cd799439011"}'
+```
+
+### Get Order Details
+```bash
+curl -X GET https://backend.rani-jay.com/api/order/507f1f77bcf86cd799439050 \
+  -H "token: YOUR_JWT_TOKEN"
+```
+
+### List All Orders (Admin)
+```bash
+curl -X GET https://backend.rani-jay.com/api/order/list \
+  -H "token: ADMIN_JWT_TOKEN"
+```
+
+### Update Order Status (Admin)
+```bash
+curl -X POST https://backend.rani-jay.com/api/order/status \
+  -H "token: ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439012",
+    "orderId": "507f1f77bcf86cd799439050",
+    "status": "Pending"
+  }'
+```
+
+### Get Available Orders (Delivery Person)
+```bash
+curl -X GET https://backend.rani-jay.com/api/order/available \
+  -H "token: YOUR_JWT_TOKEN"
+```
+
+### Get Nearest Orders (Delivery Person)
+```bash
+curl -X GET "https://backend.rani-jay.com/api/order/nearest?latitude=40.7128&longitude=-74.0060" \
+  -H "token: YOUR_JWT_TOKEN"
+```
+
+### Accept Order (Delivery Person)
+```bash
+curl -X POST https://backend.rani-jay.com/api/order/accept \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439020",
+    "orderId": "507f1f77bcf86cd799439050"
+  }'
+```
+
+### Mark as Delivered (Delivery Person)
+```bash
+curl -X POST https://backend.rani-jay.com/api/order/delivered \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439020",
+    "orderId": "507f1f77bcf86cd799439050"
+  }'
+```
+
+---
+
+---
+
+# Delivery Pricing API
+
+## Base URL
+`https://backend.rani-jay.com/api/pricing`
+
+---
+
+## Admin Endpoints (Requires JWT Token with Admin Role)
+
+### Create Pricing Tier
+**Endpoint:** `POST /create`
+
+**Description:** Create a new delivery pricing tier based on distance
+
+**Headers:**
+```
+token: ADMIN_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439012",
+  "name": "Short Distance",
+  "minDistance": 0,
+  "maxDistance": 5,
+  "unit": "km",
+  "price": 2.99
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Pricing tier created successfully",
+  "pricingTier": {
+    "_id": "507f1f77bcf86cd799439041",
+    "name": "Short Distance",
+    "minDistance": 0,
+    "maxDistance": 5,
+    "unit": "km",
+    "price": 2.99,
+    "isActive": true,
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+**Validation:**
+- `name`: Required, string
+- `minDistance`: Required, non-negative number
+- `maxDistance`: Optional, must be greater than minDistance (null for unlimited)
+- `unit`: Required, must be "km" or "m"
+- `price`: Required, non-negative number
+
+---
+
+### Update Pricing Tier
+**Endpoint:** `PUT /:id`
+
+**Description:** Update an existing pricing tier (Admin only)
+
+**Headers:**
+```
+token: ADMIN_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Parameters:**
+- `id` (string): Pricing Tier ID
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439012",
+  "name": "Short Distance Updated",
+  "price": 3.49,
+  "maxDistance": 6
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Pricing tier updated successfully",
+  "pricingTier": {
+    "_id": "507f1f77bcf86cd799439041",
+    "name": "Short Distance Updated",
+    "minDistance": 0,
+    "maxDistance": 6,
+    "unit": "km",
+    "price": 3.49,
+    "isActive": true
+  }
+}
+```
+
+---
+
+### Delete Pricing Tier
+**Endpoint:** `DELETE /:id`
+
+**Description:** Delete a pricing tier (Admin only)
+
+**Headers:**
+```
+token: ADMIN_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Parameters:**
+- `id` (string): Pricing Tier ID
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439012"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Pricing tier deleted successfully"
+}
+```
+
+---
+
+### Toggle Pricing Status
+**Endpoint:** `PATCH /toggle-status/:id`
+
+**Description:** Activate or deactivate a pricing tier (Admin only)
+
+**Headers:**
+```
+token: ADMIN_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Parameters:**
+- `id` (string): Pricing Tier ID
+
+**Request Body:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439012"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Pricing tier status updated successfully",
+  "pricingTier": {
+    "_id": "507f1f77bcf86cd799439041",
+    "name": "Short Distance",
+    "minDistance": 0,
+    "maxDistance": 5,
+    "unit": "km",
+    "price": 2.99,
+    "isActive": false
+  }
+}
+```
+
+---
+
+## Public Endpoints
+
+### List All Pricing Tiers
+**Endpoint:** `GET /list`
+
+**Description:** Get all pricing tiers (Public)
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "pricingTiers": [
+    {
+      "_id": "507f1f77bcf86cd799439041",
+      "name": "Short Distance",
+      "minDistance": 0,
+      "maxDistance": 5,
+      "unit": "km",
+      "price": 2.99,
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00Z"
+    },
+    {
+      "_id": "507f1f77bcf86cd799439042",
+      "name": "Medium Distance",
+      "minDistance": 5,
+      "maxDistance": 15,
+      "unit": "km",
+      "price": 5.99,
+      "isActive": true,
+      "createdAt": "2024-01-15T11:00:00Z"
+    },
+    {
+      "_id": "507f1f77bcf86cd799439043",
+      "name": "Long Distance",
+      "minDistance": 15,
+      "maxDistance": null,
+      "unit": "km",
+      "price": 9.99,
+      "isActive": true,
+      "createdAt": "2024-01-15T11:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### Get Pricing Tier by ID
+**Endpoint:** `GET /:id`
+
+**Description:** Get details of a specific pricing tier (Public)
+
+**Parameters:**
+- `id` (string): Pricing Tier ID
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "pricingTier": {
+    "_id": "507f1f77bcf86cd799439041",
+    "name": "Short Distance",
+    "minDistance": 0,
+    "maxDistance": 5,
+    "unit": "km",
+    "price": 2.99,
+    "isActive": true,
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+---
+
+### Calculate Delivery Price
+**Endpoint:** `POST /calculate`
+
+**Description:** Calculate delivery price based on distance (Public)
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "distance": 3.5,
+  "unit": "km"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "price": 2.99,
+  "pricingTier": {
+    "_id": "507f1f77bcf86cd799439041",
+    "name": "Short Distance",
+    "minDistance": 0,
+    "maxDistance": 5,
+    "unit": "km",
+    "price": 2.99
+  }
+}
+```
+
+**Response (Error - No Applicable Pricing):**
+```json
+{
+  "success": false,
+  "message": "No applicable pricing found for this distance"
+}
+```
+
+**Parameters:**
+- `distance`: Required, numeric
+- `unit`: Required, must be "km" or "m"
+
+---
+
+## cURL Examples
+
+### Create Pricing Tier (Admin)
+```bash
+curl -X POST https://backend.rani-jay.com/api/pricing/create \
+  -H "token: ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439012",
+    "name": "Short Distance",
+    "minDistance": 0,
+    "maxDistance": 5,
+    "unit": "km",
+    "price": 2.99
+  }'
+```
+
+### Update Pricing Tier (Admin)
+```bash
+curl -X PUT https://backend.rani-jay.com/api/pricing/507f1f77bcf86cd799439041 \
+  -H "token: ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "507f1f77bcf86cd799439012",
+    "price": 3.49
+  }'
+```
+
+### Delete Pricing Tier (Admin)
+```bash
+curl -X DELETE https://backend.rani-jay.com/api/pricing/507f1f77bcf86cd799439041 \
+  -H "token: ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "507f1f77bcf86cd799439012"}'
+```
+
+### Toggle Pricing Status (Admin)
+```bash
+curl -X PATCH https://backend.rani-jay.com/api/pricing/toggle-status/507f1f77bcf86cd799439041 \
+  -H "token: ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "507f1f77bcf86cd799439012"}'
+```
+
+### List All Pricing Tiers (Public)
+```bash
+curl https://backend.rani-jay.com/api/pricing/list
+```
+
+### Get Pricing Tier by ID (Public)
+```bash
+curl https://backend.rani-jay.com/api/pricing/507f1f77bcf86cd799439041
+```
+
+### Calculate Delivery Price (Public)
+```bash
+curl -X POST https://backend.rani-jay.com/api/pricing/calculate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "distance": 3.5,
+    "unit": "km"
+  }'
+```
+
+---
+
+---
+
 # Real-Time Location Tracking API
 
 ## Base URL
@@ -1498,308 +2606,3 @@ socket.emit('ACCEPT_ORDER', {
   userId: '507f1f77bcf86cd799439020'
 });
 ```
-Delivery person accepts an assigned order
-
-#### 7. Start Delivery
-```javascript
-socket.emit('START_DELIVERY', {
-  orderId: '507f1f77bcf86cd799439050',
-  userId: '507f1f77bcf86cd799439020'
-});
-```
-Delivery person starts delivering the order
-
-#### 8. Complete Delivery
-```javascript
-socket.emit('COMPLETE_DELIVERY', {
-  orderId: '507f1f77bcf86cd799439050',
-  userId: '507f1f77bcf86cd799439020'
-});
-```
-Delivery person completes the delivery
-
-### Server to Client
-
-#### 1. Current Location
-```javascript
-socket.on('current-location', (location) => {
-  console.log('Current location:', location);
-  // {
-  //   "_id": "...",
-  //   "userId": "507f1f77bcf86cd799439020",
-  //   "latitude": 40.7128,
-  //   "longitude": -74.0060,
-  //   "accuracy": 10,
-  //   "isActive": true,
-  //   "lastUpdated": "2024-01-15T10:30:00Z"
-  // }
-});
-```
-
-#### 2. Location Updated
-```javascript
-socket.on('location-updated', (location) => {
-  console.log('Location updated:', location);
-});
-```
-
-#### 3. Delivery Location Updated
-```javascript
-socket.on('delivery-location-updated', (data) => {
-  console.log('Delivery location:', data);
-  // {
-  //   "location": {...},
-  //   "orderId": "507f1f77bcf86cd799439050",
-  //   "deliveryPerson": "507f1f77bcf86cd799439020"
-  // }
-});
-```
-
-#### 4. Order Details
-```javascript
-socket.on('order-details', (data) => {
-  console.log('Order details:', data);
-  // {
-  //   "orderId": "507f1f77bcf86cd799439050",
-  //   "status": "Food Processing",
-  //   "assignedDeliveryPerson": "507f1f77bcf86cd799439020",
-  //   "estimatedDeliveryTime": 30
-  // }
-});
-```
-
-#### 5. Order Accepted
-```javascript
-socket.on('order-accepted', (data) => {
-  console.log('Order accepted:', data);
-  // {
-  //   "orderId": "507f1f77bcf86cd799439050",
-  //   "acceptedAt": "2024-01-15T10:35:00Z",
-  //   "deliveryPerson": "507f1f77bcf86cd799439020"
-  // }
-});
-```
-
-#### 6. Delivery Started
-```javascript
-socket.on('delivery-started', (data) => {
-  console.log('Delivery started:', data);
-  // {
-  //   "orderId": "507f1f77bcf86cd799439050",
-  //   "startedAt": "2024-01-15T10:40:00Z",
-  //   "deliveryPerson": "507f1f77bcf86cd799439020"
-  // }
-});
-```
-
-#### 7. Delivery Completed
-```javascript
-socket.on('delivery-completed', (data) => {
-  console.log('Delivery completed:', data);
-  // {
-  //   "orderId": "507f1f77bcf86cd799439050",
-  //   "deliveredAt": "2024-01-15T10:50:00Z",
-  //   "deliveryPerson": "507f1f77bcf86cd799439020"
-  // }
-});
-```
-
-#### 8. Error Event
-```javascript
-socket.on('error', (error) => {
-  console.log('WebSocket error:', error);
-  // { "message": "Error description" }
-});
-```
-
----
-
-## WebSocket Implementation Flow
-
-### Customer Tracking Delivery
-```
-1. Customer places order (POST /api/order/place)
-2. Admin assigns delivery person (POST /api/location/match/:orderId)
-3. Delivery person connects WebSocket (socket.io connection)
-4. Delivery person joins location tracking (emit 'join-tracking')
-5. Delivery person accepts order (emit 'ACCEPT_ORDER')
-6. Delivery person starts delivery (emit 'START_DELIVERY')
-7. Delivery person sends location every 3 seconds (emit 'LOCATION_UPDATE')
-8. Customer subscribes to order (emit 'SUBSCRIBE_ORDER')
-9. Customer receives delivery location updates in real-time
-10. Delivery person completes delivery (emit 'COMPLETE_DELIVERY')
-11. Customer receives delivery completion notification
-```
-
-### Delivery Person Accepting Order
-```
-1. Admin or system assigns order to delivery person
-2. Delivery person receives order push notification
-3. Delivery person connects WebSocket
-4. Delivery person emits 'ACCEPT_ORDER' with orderId
-5. System updates order with acceptedAt timestamp
-6. All subscribers of order receive 'order-accepted' event
-7. Delivery person enables GPS and starts sending LOCATION_UPDATE
-```
-
----
-
-## Message Types Summary
-
-| Message Type | Direction | Role | Purpose |
-|---|---|---|---|
-| LOCATION_UPDATE | Client → Server | Delivery Person | Send GPS coordinates every 3 seconds |
-| SUBSCRIBE_ORDER | Client → Server | Customer/Admin | Subscribe to order delivery updates |
-| ACCEPT_ORDER | Client → Server | Delivery Person | Accept assigned order |
-| START_DELIVERY | Client → Server | Delivery Person | Begin delivery to customer |
-| COMPLETE_DELIVERY | Client → Server | Delivery Person | Complete delivery |
-| location-updated | Server → Client | All | Current location updated |
-| delivery-location-updated | Server → Client | Subscribers | Delivery person location changed |
-| order-details | Server → Client | Subscriber | Order information |
-| order-accepted | Server → Client | Subscribers | Order accepted by delivery person |
-| delivery-started | Server → Client | Subscribers | Delivery started |
-| delivery-completed | Server → Client | Subscribers | Delivery completed |
-| error | Server → Client | All | Error message |
-
-#### 3. Delivery Location Updated (Order Tracking)
-```javascript
-socket.on('delivery-location-updated', (data) => {
-  console.log('Delivery person moved to:', data.location);
-});
-```
-
-#### 4. Error
-```javascript
-socket.on('error', (error) => {
-  console.log('Error:', error.message);
-});
-```
-
----
-
-## cURL Examples
-
-### Update Location
-```bash
-curl -X POST https://backend.rani-jay.com/api/location/update \
-  -H "token: YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "accuracy": 10
-  }'
-```
-
-### Get User Location
-```bash
-curl -X GET https://backend.rani-jay.com/api/location/user/507f1f77bcf86cd799439011 \
-  -H "token: YOUR_JWT_TOKEN"
-```
-
-### Get All Active Delivery Locations (Admin)
-```bash
-curl -X GET https://backend.rani-jay.com/api/location/delivery/active/list \
-  -H "token: ADMIN_JWT_TOKEN"
-```
-
-### Auto-Match Delivery (Admin)
-```bash
-curl -X POST https://backend.rani-jay.com/api/location/match/507f1f77bcf86cd799439050 \
-  -H "token: ADMIN_JWT_TOKEN" \
-  -H "Content-Type: application/json"
-```
-
-### Get Order Delivery Location (Customer)
-```bash
-curl -X GET https://backend.rani-jay.com/api/location/order/507f1f77bcf86cd799439050 \
-  -H "token: YOUR_JWT_TOKEN"
-```
-
-### Get Location History (Admin)
-```bash
-curl -X GET "https://backend.rani-jay.com/api/location/history/507f1f77bcf86cd799439020?days=7" \
-  -H "token: ADMIN_JWT_TOKEN"
-```
-
-### Get Order Location History (Customer/Admin)
-```bash
-curl -X GET https://backend.rani-jay.com/api/location/order-history/507f1f77bcf86cd799439050 \
-  -H "token: YOUR_JWT_TOKEN"
-```
-
-### Toggle Location Sharing
-```bash
-curl -X PATCH https://backend.rani-jay.com/api/location/sharing/toggle \
-  -H "token: YOUR_JWT_TOKEN"
-```
-
----
-
-## JavaScript WebSocket Client Example
-
-```javascript
-// Connect to WebSocket
-const socket = io('https://backend.rani-jay.com');
-
-// Join tracking
-socket.emit('join-tracking', userId);
-
-// Listen for current location
-socket.on('current-location', (location) => {
-  console.log('Your current location:', location);
-});
-
-// Send location update every 3 seconds
-setInterval(() => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      socket.emit('update-location', {
-        userId: userId,
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy
-      });
-    });
-  }
-}, 3000);
-
-// Listen for location updates
-socket.on('location-updated', (location) => {
-  console.log('Location updated:', location);
-});
-
-// For order tracking
-socket.emit('join-order-tracking', orderId);
-
-socket.on('delivery-location-updated', (data) => {
-  console.log('Delivery person current location:', data.location);
-  updateMapView(data.location);
-});
-
-// Handle disconnection
-socket.on('disconnect', () => {
-  console.log('Disconnected from server');
-});
-```
-
----
-
-## Order Model Updates
-
-The Order model now includes:
-- `assignedDeliveryPerson`: Reference to delivery person (auto-assigned)
-- `pickupLocation`: { latitude, longitude } - Shop location
-- `deliveryLocation`: { latitude, longitude } - Customer location
-- `assignedAt`: Timestamp when delivery person was assigned
-
----
-
-## Key Features
-
-1. **WebSocket Real-time Updates** - Location updates broadcast every 3 seconds
-2. **Auto-matching Algorithm** - Uses Haversine formula to find closest delivery person
-3. **Persistent History** - All location data stored forever in locationHistory collection
-4. **Role-based Access** - Admins see all locations, customers see assigned delivery person only
-5. **Location Sharing Control** - Users can toggle their location sharing on/off
-6. **In-memory Cache** - Active locations cached for fast access via Socket.io

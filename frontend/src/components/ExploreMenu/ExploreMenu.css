@@ -1,23 +1,25 @@
 .explore-menu {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  margin: 40px 0;
+  gap: 32px;
+  margin: 60px 0;
   animation: fadeIn 0.8s ease;
 }
 
 .explore-menu h1 {
   color: #1a1a1a;
-  font-weight: 700;
-  font-size: 36px;
+  font-weight: 800;
+  font-size: 42px;
+  letter-spacing: -1px;
 }
 
 .explore-menu-text {
   max-width: 70%;
   color: #666;
-  font-size: 15px;
-  line-height: 1.6;
-  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.8;
+  font-weight: 300;
+  letter-spacing: 0.3px;
 }
 
 .explore-menu-list {
@@ -54,44 +56,53 @@
 }
 
 .explore-menu-list-item img {
-  width: 100px;
-  height: 100px;
+  width: 110px;
+  height: 110px;
   cursor: pointer;
-  border-radius: 50%;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   object-fit: cover;
 }
 
 .explore-menu-list-item img:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.25);
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
 }
 
 .explore-menu-list-item img.active {
-  border: 4px solid #ff6b35;
-  padding: 2px;
-  background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) border-box;
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
-  transform: scale(1.05);
+  border: 3px solid #5a3a28;
+  box-shadow: 0 12px 32px rgba(90, 58, 40, 0.25);
+  transform: translateY(-4px);
 }
 
 .explore-menu-list-item p {
-  margin-top: 4px;
+  margin-top: 10px;
   color: #1a1a1a;
   font-size: 15px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  text-align: center;
+  word-break: break-word;
+  max-width: 120px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .explore-menu-list-item:hover p {
-  color: #ff6b35;
+  color: #5a3a28;
+  transform: translateY(-2px);
 }
 
 .explore-menu-list-item.active-shop p {
-  color: #ff6b35;
-  font-weight: 600;
+  color: #5a3a28;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.4px;
+  text-transform: capitalize;
 }
 
 .no-shops {
@@ -101,25 +112,31 @@
 }
 
 .explore-menu hr {
-  margin: 20px 0;
+  margin: 30px 0;
   height: 1px;
-  background: linear-gradient(90deg, #ff6b35 0%, rgba(255, 107, 53, 0.1) 50%, rgba(255, 107, 53, 0) 100%);
+  background: linear-gradient(90deg, transparent, #ddd 20%, #ddd 80%, transparent);
   border: none;
 }
 
 @media (max-width: 1050px) {
+  .explore-menu {
+    gap: 28px;
+    margin: 50px 0;
+  }
+
   .explore-menu h1 {
-    font-size: 32px;
+    font-size: 36px;
+    letter-spacing: -0.8px;
   }
 
   .explore-menu-text {
     max-width: 100%;
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .explore-menu-list-item img {
-    width: 90px;
-    height: 90px;
+    width: 100px;
+    height: 100px;
   }
 
   .explore-menu-list-item p {
@@ -128,17 +145,25 @@
 }
 
 @media (max-width: 750px) {
+  .explore-menu {
+    gap: 24px;
+    margin: 40px 0;
+  }
+
   .explore-menu h1 {
-    font-size: 28px;
+    font-size: 30px;
+    letter-spacing: -0.6px;
   }
 
   .explore-menu-text {
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1.6;
   }
 
   .explore-menu-list-item img {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
+    border-radius: 14px;
   }
 
   .explore-menu-list-item p {

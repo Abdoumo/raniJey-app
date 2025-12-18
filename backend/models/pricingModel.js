@@ -13,6 +13,10 @@ const pricingTierSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Add indexes for faster query performance
+pricingTierSchema.index({ unit: 1, isActive: 1, minDistance: 1 });
+pricingTierSchema.index({ unit: 1, isActive: 1, minDistance: 1, maxDistance: 1 });
+
 const pricingModel = mongoose.models.pricing || mongoose.model("pricing", pricingTierSchema);
 
 export default pricingModel;

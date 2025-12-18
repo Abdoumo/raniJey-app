@@ -1,11 +1,11 @@
 .header {
-  height: 500px;
-  margin: 20px auto;
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8a50 100%);
+  height: 520px;
+  margin: 24px auto;
+  background: linear-gradient(135deg, #2a1f1f 0%, #3d2817 50%, #5a3a28 100%);
   position: relative;
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(255, 107, 53, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
 .header::before {
@@ -13,9 +13,21 @@
   position: absolute;
   top: -50%;
   right: -10%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255, 152, 94, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 152, 94, 0.06) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -26,112 +38,125 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 24px;
+  gap: 28px;
   max-width: 55%;
   height: 100%;
-  left: 60px;
+  left: 70px;
   animation: slideIn 0.8s ease;
   z-index: 2;
 }
 
 .header-contents h2 {
-  font-weight: 700;
-  color: white;
-  font-size: 56px;
-  line-height: 1.2;
-  letter-spacing: -1px;
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 64px;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
 }
 
 .header-contents p {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 16px;
-  line-height: 1.6;
-  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 17px;
+  line-height: 1.7;
+  font-weight: 300;
   max-width: 95%;
+  letter-spacing: 0.3px;
 }
 
 .header-contents button {
   border: none;
-  color: #ff6b35;
-  font-weight: 600;
-  padding: 14px 40px;
-  background-color: white;
+  color: #5a3a28;
+  font-weight: 700;
+  padding: 16px 48px;
+  background-color: #ffffff;
   font-size: 15px;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
 }
 
 .header-contents button:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  background-color: #f8f8f8;
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  background-color: #f5f5f5;
 }
 
 .header-contents button:active {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 @media (max-width: 1050px) {
   .header {
-    height: 420px;
+    height: 440px;
+    margin: 20px auto;
   }
 
   .header-contents {
     max-width: 60%;
-    left: 50px;
+    left: 55px;
+    gap: 24px;
   }
 
   .header-contents h2 {
-    font-size: 48px;
+    font-size: 54px;
+    letter-spacing: -1.2px;
   }
 
   .header-contents p {
-    font-size: 15px;
+    font-size: 16px;
+  }
+
+  .header-contents button {
+    padding: 15px 44px;
+    font-size: 14px;
   }
 }
 
 @media (max-width: 900px) {
   .header {
-    height: 380px;
-    margin: 16px auto;
+    height: 400px;
+    margin: 18px auto;
   }
 
   .header-contents {
     max-width: 65%;
-    left: 40px;
-    gap: 20px;
+    left: 45px;
+    gap: 22px;
   }
 
   .header-contents h2 {
-    font-size: 42px;
+    font-size: 46px;
+    letter-spacing: -1px;
   }
 
   .header-contents p {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .header-contents button {
-    padding: 12px 32px;
+    padding: 14px 40px;
     font-size: 14px;
   }
 }
 
 @media (max-width: 750px) {
   .header {
-    height: 320px;
+    height: 340px;
+    margin: 16px auto;
   }
 
   .header-contents {
     max-width: 100%;
-    left: 30px;
-    right: 30px;
-    gap: 16px;
+    left: 32px;
+    right: 32px;
+    gap: 18px;
   }
 
   .header-contents h2 {
-    font-size: 32px;
+    font-size: 36px;
+    letter-spacing: -0.8px;
   }
 
   .header-contents p {
@@ -139,7 +164,7 @@
   }
 
   .header-contents button {
-    padding: 10px 28px;
+    padding: 12px 32px;
     font-size: 13px;
   }
 }

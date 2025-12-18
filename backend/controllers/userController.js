@@ -48,7 +48,8 @@ const isValidRole = (role) => {
 // register user
 
 const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, phone, role } = req.body;
+  console.log('Register request received:', { name, email, phone, role });
   try {
     // checking user is already exist
     const exists = await userModel.findOne({ email });
@@ -85,10 +86,12 @@ const registerUser = async (req, res) => {
       name: name,
       email: email,
       password: hashedPassword,
+      phone: phone || null,
       role: normalizedRole,
     });
 
     const user = await newUser.save();
+    console.log('User saved with phone:', user.phone);
     const token = createToken(user._id);
     res.json({ success: true, token, role: user.role });
   } catch (error) {

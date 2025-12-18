@@ -6,7 +6,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const LoginPopup = ({ setShowLogin }) => {
-  const {url, setToken } = useContext(StoreContext);
+  const {url, setToken, setUserId } = useContext(StoreContext);
   const [currentState, setCurrentState] = useState("Login");
   const [data, setData] = useState({
     name: "",
@@ -31,7 +31,7 @@ const LoginPopup = ({ setShowLogin }) => {
     event.preventDefault();
 
     if (currentState === "Sign Up") {
-      if (!validatePhoneNumber(data.phone)) {
+      if (data.phone && !validatePhoneNumber(data.phone)) {
         toast.error("Please enter a valid Algerian phone number");
         return;
       }
@@ -46,11 +46,25 @@ const LoginPopup = ({ setShowLogin }) => {
       newUrl += "/api/user/login";
     } else {
       newUrl += "/api/user/register";
+      console.log('Registering with data:', data);
     }
     const response = await axios.post(newUrl, data);
     if (response.data.success) {
-      setToken(response.data.token);
-      localStorage.setItem("token", response.data.token);
+      const loginToken = response.data.token;
+      setToken(loginToken);
+      localStorage.setItem("token", loginToken);
+
+      try {
+        const profileResponse = await axios.get(url + "/api/user/profile", {
+          headers: { token: loginToken },
+        });
+        if (profileResponse.data.success && profileResponse.data.user._id) {
+          setUserId(profileResponse.data.user._id);
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+      }
+
       toast.success(currentState === "Login" ? "Login Successfully" : "Account Created Successfully");
       setShowLogin(false);
     }else{
@@ -107,8 +121,7 @@ const LoginPopup = ({ setShowLogin }) => {
                 onChange={onChangeHandler}
                 value={data.phone}
                 type="tel"
-                placeholder="Phone (e.g., +213 5xx xxx xxx)"
-                required
+                placeholder="Phone (e.g., +213 5xx xxx xxx) - Optional"
               />
             </>
           )}
