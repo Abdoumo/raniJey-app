@@ -1046,7 +1046,6 @@ wss://backend.rani-jay.com
 
 **CORS Origins:**
 - https://rani-jay.com
-- https://admin.rani-jay.com
 - http://localhost:5173
 - http://localhost:3000
 
@@ -1083,5 +1082,5 @@ wss://backend.rani-jay.com
 
 ---
 
-**Last Updated:** January 2024  
+**Last Updated:** January 2026
 **Reviewed By:** Backend Team
