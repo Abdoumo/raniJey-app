@@ -238,4 +238,134 @@ const toggleUserStatus = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser, getUserProfile, getUserById, updateUser, deleteUser, getAllUsers, toggleUserStatus };
+// Add delivery address
+const addAddress = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const { label, street, city, zipCode, phone } = req.body;
+
+    // Validate required fields
+    if (!label || !street || !city || !zipCode || !phone) {
+      return res.json({ success: false, message: "All address fields are required" });
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // Initialize addresses array if it doesn't exist
+    if (!user.addresses) {
+      user.addresses = [];
+    }
+
+    // If this is the first address, set it as default
+    const isFirstAddress = user.addresses.length === 0;
+
+    const newAddress = {
+      label,
+      street,
+      city,
+      zipCode,
+      phone,
+      isDefault: isFirstAddress,
+      createdAt: new Date(),
+    };
+
+    user.addresses.push(newAddress);
+    await user.save();
+
+    const updatedUser = await userModel.findById(userId).select("-password");
+    res.json({ success: true, message: "Address added successfully", user: updatedUser });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Update delivery address
+const updateAddress = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const { addressId } = req.params;
+    const { label, street, city, zipCode, phone, isDefault } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    const address = user.addresses.find((addr) => addr._id.toString() === addressId);
+    if (!address) {
+      return res.json({ success: false, message: "Address not found" });
+    }
+
+    // Update fields
+    if (label) address.label = label;
+    if (street) address.street = street;
+    if (city) address.city = city;
+    if (zipCode) address.zipCode = zipCode;
+    if (phone) address.phone = phone;
+
+    // Handle default address logic
+    if (isDefault !== undefined && isDefault !== address.isDefault) {
+      if (isDefault) {
+        // Set all other addresses to not default
+        user.addresses.forEach((addr) => {
+          addr.isDefault = false;
+        });
+        address.isDefault = true;
+      } else {
+        // Cannot unset default if it's the only address
+        if (user.addresses.filter((addr) => addr.isDefault).length === 1) {
+          return res.json({ success: false, message: "Cannot unset the only default address" });
+        }
+        address.isDefault = false;
+      }
+    }
+
+    await user.save();
+
+    const updatedUser = await userModel.findById(userId).select("-password");
+    res.json({ success: true, message: "Address updated successfully", user: updatedUser });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Delete delivery address
+const deleteAddress = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const { addressId } = req.params;
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    const addressIndex = user.addresses.findIndex((addr) => addr._id.toString() === addressId);
+    if (addressIndex === -1) {
+      return res.json({ success: false, message: "Address not found" });
+    }
+
+    const wasDefault = user.addresses[addressIndex].isDefault;
+    user.addresses.splice(addressIndex, 1);
+
+    // If deleted address was default and there are other addresses, set first one as default
+    if (wasDefault && user.addresses.length > 0) {
+      user.addresses[0].isDefault = true;
+    }
+
+    await user.save();
+
+    const updatedUser = await userModel.findById(userId).select("-password");
+    res.json({ success: true, message: "Address deleted successfully", user: updatedUser });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+export { loginUser, registerUser, getUserProfile, getUserById, updateUser, deleteUser, getAllUsers, toggleUserStatus, addAddress, updateAddress, deleteAddress };

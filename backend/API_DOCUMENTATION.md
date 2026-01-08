@@ -98,7 +98,20 @@ token: YOUR_JWT_TOKEN
     "name": "John Doe",
     "email": "john@gmail.com",
     "role": "user",
-    "cartData": {}
+    "phone": "+1-555-123-4567",
+    "cartData": {},
+    "addresses": [
+      {
+        "_id": "507f1f77bcf86cd799439101",
+        "label": "Home",
+        "street": "123 Main Street",
+        "city": "New York",
+        "zipCode": "10001",
+        "phone": "+1-555-123-4567",
+        "isDefault": true,
+        "createdAt": "2024-01-15T10:30:00Z"
+      }
+    ]
   }
 }
 ```
@@ -142,7 +155,9 @@ Content-Type: application/json
     "name": "John Updated",
     "email": "john.new@gmail.com",
     "role": "user",
-    "cartData": {}
+    "phone": "+1-555-123-4567",
+    "cartData": {},
+    "addresses": []
   }
 }
 ```
@@ -210,14 +225,18 @@ token: YOUR_JWT_TOKEN
       "name": "John Doe",
       "email": "john@gmail.com",
       "role": "user",
-      "cartData": {}
+      "phone": "+1-555-123-4567",
+      "cartData": {},
+      "addresses": []
     },
     {
       "_id": "507f1f77bcf86cd799439012",
       "name": "Admin User",
       "email": "admin@gmail.com",
       "role": "admin",
-      "cartData": {}
+      "phone": "+1-555-234-5678",
+      "cartData": {},
+      "addresses": []
     }
   ]
 }
@@ -274,8 +293,10 @@ PATCH /toggle-status/507f1f77bcf86cd799439011
     "name": "John Doe",
     "email": "john@gmail.com",
     "role": "user",
+    "phone": "+1-555-123-4567",
     "isActive": true,
-    "cartData": {}
+    "cartData": {},
+    "addresses": []
   }
 }
 ```
@@ -290,8 +311,10 @@ PATCH /toggle-status/507f1f77bcf86cd799439011
     "name": "John Doe",
     "email": "john@gmail.com",
     "role": "user",
+    "phone": "+1-555-123-4567",
     "isActive": false,
-    "cartData": {}
+    "cartData": {},
+    "addresses": []
   }
 }
 ```
@@ -342,7 +365,8 @@ GET /507f1f77bcf86cd799439011
     "name": "John Doe",
     "email": "john@gmail.com",
     "role": "user",
-    "cartData": {}
+    "cartData": {},
+    "addresses": []
   }
 }
 ```
@@ -354,6 +378,183 @@ GET /507f1f77bcf86cd799439011
   "message": "User not found"
 }
 ```
+
+---
+
+## Address Management Endpoints (Protected)
+
+### Add Delivery Address
+**Endpoint:** `POST /address/add`
+
+**Description:** Add a new delivery address for the user
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "label": "Home",
+  "street": "123 Main Street",
+  "city": "New York",
+  "zipCode": "10001",
+  "phone": "+1-555-123-4567"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Address added successfully",
+  "user": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@gmail.com",
+    "addresses": [
+      {
+        "_id": "507f1f77bcf86cd799439101",
+        "label": "Home",
+        "street": "123 Main Street",
+        "city": "New York",
+        "zipCode": "10001",
+        "phone": "+1-555-123-4567",
+        "isDefault": true,
+        "createdAt": "2024-01-15T10:30:00Z"
+      }
+    ]
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "All address fields are required"
+}
+```
+
+**Validation:**
+- `label`: Required, string
+- `street`: Required, string
+- `city`: Required, string
+- `zipCode`: Required, string
+- `phone`: Required, string
+- First address is automatically set as default
+
+---
+
+### Update Delivery Address
+**Endpoint:** `PUT /address/:addressId`
+
+**Description:** Update an existing delivery address
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+**Parameters:**
+- `addressId` (string): Address ID
+
+**Request Body:**
+```json
+{
+  "label": "Work",
+  "street": "456 Office Avenue",
+  "city": "New York",
+  "zipCode": "10002",
+  "phone": "+1-555-987-6543",
+  "isDefault": true
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Address updated successfully",
+  "user": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "addresses": [
+      {
+        "_id": "507f1f77bcf86cd799439101",
+        "label": "Work",
+        "street": "456 Office Avenue",
+        "city": "New York",
+        "zipCode": "10002",
+        "phone": "+1-555-987-6543",
+        "isDefault": true,
+        "createdAt": "2024-01-15T10:30:00Z"
+      }
+    ]
+  }
+}
+```
+
+**Response (Error - Address Not Found):**
+```json
+{
+  "success": false,
+  "message": "Address not found"
+}
+```
+
+**Notes:**
+- All fields are optional; only provided fields are updated
+- Setting `isDefault: true` will unset other addresses as default
+- Cannot unset default if it's the only address
+
+---
+
+### Delete Delivery Address
+**Endpoint:** `DELETE /address/:addressId`
+
+**Description:** Delete a delivery address
+
+**Headers:**
+```
+token: YOUR_JWT_TOKEN
+```
+
+**Parameters:**
+- `addressId` (string): Address ID
+
+**Example:**
+```
+DELETE /address/507f1f77bcf86cd799439101
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Address deleted successfully",
+  "user": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "addresses": []
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "Address not found"
+}
+```
+
+**Notes:**
+- If the deleted address was default and other addresses exist, the first address becomes default
+- If it's the only address, no default is set
 
 ---
 
@@ -418,6 +619,38 @@ curl -X GET https://backend.rani-jay.com/api/user/list/all \
 ```bash
 curl -X PATCH https://backend.rani-jay.com/api/user/toggle-status/507f1f77bcf86cd799439011 \
   -H "token: ADMIN_JWT_TOKEN"
+```
+
+### Add Delivery Address
+```bash
+curl -X POST https://backend.rani-jay.com/api/user/address/add \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "Home",
+    "street": "123 Main Street",
+    "city": "New York",
+    "zipCode": "10001",
+    "phone": "+1-555-123-4567"
+  }'
+```
+
+### Update Delivery Address
+```bash
+curl -X PUT https://backend.rani-jay.com/api/user/address/507f1f77bcf86cd799439101 \
+  -H "token: YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "Work",
+    "street": "456 Office Avenue",
+    "isDefault": true
+  }'
+```
+
+### Delete Delivery Address
+```bash
+curl -X DELETE https://backend.rani-jay.com/api/user/address/507f1f77bcf86cd799439101 \
+  -H "token: YOUR_JWT_TOKEN"
 ```
 
 ---
@@ -610,16 +843,19 @@ token: YOUR_JWT_TOKEN
 ### List All Shops
 **Endpoint:** `GET /list`
 
-**Description:** Get all active shops (optional filter by type)
+**Description:** Get all active shops with optional filters (Public)
 
 **Query Parameters:**
 - `type` (optional): "restaurant" or "butchers"
+- `search` (optional): Search keyword to filter by name, description, or address (case-insensitive)
 
 **Examples:**
 ```
-GET /list                    (get all active shops)
-GET /list?type=restaurant    (get all active restaurants)
-GET /list?type=butchers      (get all active butchers shops)
+GET /list                              (get all active shops)
+GET /list?type=restaurant              (get all active restaurants)
+GET /list?type=butchers                (get all active butchers shops)
+GET /list?search=italian               (get shops matching "italian")
+GET /list?type=restaurant&search=pizza (get restaurants matching "pizza")
 ```
 
 **Response (Success):**
@@ -733,6 +969,16 @@ curl https://backend.rani-jay.com/api/shop/list
 curl https://backend.rani-jay.com/api/shop/list?type=restaurant
 ```
 
+### Search Shops (Public)
+```bash
+curl https://backend.rani-jay.com/api/shop/list?search=italian
+```
+
+### Search Restaurants with Keyword (Public)
+```bash
+curl "https://backend.rani-jay.com/api/shop/list?type=restaurant&search=pizza"
+```
+
 ### Get Shop by ID (Public)
 ```bash
 curl https://backend.rani-jay.com/api/shop/507f1f77bcf86cd799439011
@@ -787,7 +1033,17 @@ Content-Type: multipart/form-data
 ### List All Foods
 **Endpoint:** `GET /list`
 
-**Description:** Get all food items from all shops (Public)
+**Description:** Get all food items from all shops with optional search (Public)
+
+**Query Parameters:**
+- `search` (optional): Search keyword to filter by name, description, or category (case-insensitive)
+
+**Examples:**
+```
+GET /list                  (get all foods)
+GET /list?search=pasta     (get all foods matching "pasta")
+GET /list?search=chicken   (get all foods matching "chicken")
+```
 
 **Response (Success):**
 ```json
@@ -804,6 +1060,50 @@ Content-Type: multipart/form-data
       "shopId": "507f1f77bcf86cd799439011"
     }
   ]
+}
+```
+
+---
+
+### Get Food by ID
+**Endpoint:** `GET /:id`
+
+**Description:** Get details of a specific food item (Public)
+
+**Parameters:**
+- `id` (string): Food ID
+
+**Example:**
+```
+GET /507f1f77bcf86cd799439021
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "507f1f77bcf86cd799439021",
+    "name": "Pasta Carbonara",
+    "description": "Creamy Italian pasta",
+    "price": 12.99,
+    "category": "Pasta",
+    "image": "1234567890image.jpg",
+    "shopId": {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "John's Restaurant",
+      "type": "restaurant",
+      "address": "123 Main St, City"
+    }
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "message": "Food not found"
 }
 ```
 
@@ -892,6 +1192,16 @@ curl -X POST https://backend.rani-jay.com/api/food/add \
 ### List All Foods
 ```bash
 curl https://backend.rani-jay.com/api/food/list
+```
+
+### Search Foods
+```bash
+curl "https://backend.rani-jay.com/api/food/list?search=pasta"
+```
+
+### Get Food by ID
+```bash
+curl https://backend.rani-jay.com/api/food/507f1f77bcf86cd799439021
 ```
 
 ### Get Foods by Shop

@@ -52,7 +52,7 @@ const createShop = async (req, res) => {
 // Get all shops (Public)
 const listShops = async (req, res) => {
   try {
-    const { type } = req.query;
+    const { type, search } = req.query;
     let filter = { isActive: true };
 
     if (type) {
@@ -60,6 +60,14 @@ const listShops = async (req, res) => {
         return res.json({ success: false, message: "Invalid shop type" });
       }
       filter.type = type;
+    }
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { address: { $regex: search, $options: "i" } },
+      ];
     }
 
     const shops = await shopModel.find(filter);

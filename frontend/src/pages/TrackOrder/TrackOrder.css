@@ -72,6 +72,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  height: 600px;
 }
 
 .map-container {
@@ -289,6 +290,10 @@
     grid-template-columns: 1fr;
   }
 
+  .map-section {
+    height: 400px;
+  }
+
   .map-container {
     height: 400px;
   }
@@ -320,6 +325,10 @@
   .track-order-container {
     padding: 16px 20px;
     gap: 16px;
+  }
+
+  .map-section {
+    height: 300px;
   }
 
   .map-container {

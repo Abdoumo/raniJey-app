@@ -66,10 +66,12 @@ export const useTracking = (url, token, userId, userRole) => {
 
     // Connect if not already connected
     if (!trackingService.isReady()) {
+      console.log('[useTracking] Attempting to connect to WebSocket:', { url, userId, userRole });
       trackingService.connect(url, token, userId, userRole).catch((error) => {
-        // Don't show error to user - WebSocket is optional, HTTP fallback will work
-        console.debug('WebSocket not available, using HTTP fallback:', error?.message || error);
+        console.warn('[useTracking] WebSocket connection failed, using HTTP fallback:', error?.message || error);
       });
+    } else {
+      console.log('[useTracking] WebSocket already connected');
     }
 
     return () => {

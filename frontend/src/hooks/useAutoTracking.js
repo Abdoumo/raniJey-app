@@ -60,11 +60,15 @@ export const useAutoTracking = () => {
           accuracy,
           timestamp: new Date().toISOString(),
         };
+        console.log('[useAutoTracking] Location update received:', { latitude, longitude, accuracy, isReady: trackingService.isReady() });
         setLocation(newLocation);
 
         // Send to backend via WebSocket
         if (trackingService.isReady()) {
+          console.log('[useAutoTracking] Sending location to backend');
           trackingService.sendLocation(latitude, longitude, accuracy);
+        } else {
+          console.warn('[useAutoTracking] Tracking service not ready, location not sent');
         }
       },
       (err) => {

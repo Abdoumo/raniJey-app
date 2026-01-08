@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
   userId: { type: String, required: true },
+  shopId: { type: mongoose.Schema.Types.ObjectId, ref: "shop", default: null },
   items: { type: Array, required: true },
   amount: { type: Number, required: true },
   address: { type: Object, required: true },
@@ -16,6 +17,7 @@ const orderSchema = new mongoose.Schema({
   startedAt: { type: Date, default: null },
   deliveredAt: { type: Date, default: null },
   estimatedDeliveryTime: { type: Number, default: null },
+  deliveryType: { type: String, enum: ["standard", "door-to-door"], default: "standard" },
 });
 
 const orderModel =

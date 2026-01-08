@@ -28,10 +28,23 @@ const addFood = async (req, res) => {
   }
 };
 
-// all foods
+// all foods with optional search
 const listFood = async (req, res) => {
   try {
-    const foods = await foodModel.find({});
+    const { search } = req.query;
+    let query = {};
+
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+          { category: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    const foods = await foodModel.find(query);
     res.json({ success: true, data: foods });
   } catch (error) {
     console.log(error);
@@ -57,6 +70,21 @@ const removeFood = async (req, res) => {
   }
 };
 
+// get food by id
+const getFoodById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const food = await foodModel.findById(id).populate("shopId");
+    if (!food) {
+      return res.json({ success: false, message: "Food not found" });
+    }
+    res.json({ success: true, data: food });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
 // get foods by shop id
 const getFoodsByShop = async (req, res) => {
   try {
@@ -69,4 +97,4 @@ const getFoodsByShop = async (req, res) => {
   }
 };
 
-export { addFood, listFood, removeFood, getFoodsByShop };
+export { addFood, listFood, removeFood, getFoodById, getFoodsByShop };

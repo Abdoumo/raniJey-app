@@ -19,6 +19,8 @@ const updateLocation = async (req, res) => {
     const userId = req.body.userId;
     const { latitude, longitude, accuracy } = req.body;
 
+    console.log('[updateLocation] Updating location for userId:', userId, { latitude, longitude, accuracy });
+
     if (!latitude || !longitude) {
       return res.json({ success: false, message: "Latitude and longitude required" });
     }
@@ -29,6 +31,8 @@ const updateLocation = async (req, res) => {
       { latitude, longitude, accuracy, lastUpdated: new Date() },
       { new: true, upsert: true }
     );
+
+    console.log('[updateLocation] Location saved:', location);
 
     // Save to history
     await locationHistoryModel.create({
@@ -44,6 +48,8 @@ const updateLocation = async (req, res) => {
       status: { $nin: ["Delivered", "Cancelled"] },
     });
 
+    console.log('[updateLocation] Active order for delivery person:', activeOrder ? activeOrder._id : 'none');
+
     if (activeOrder) {
       await locationHistoryModel.create({
         userId,
@@ -56,7 +62,7 @@ const updateLocation = async (req, res) => {
 
     res.json({ success: true, message: "Location updated", location });
   } catch (error) {
-    console.log(error);
+    console.error('[updateLocation] Error:', error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -180,30 +186,47 @@ const getOrderDeliveryLocation = async (req, res) => {
     const { orderId } = req.params;
     const userId = req.body.userId;
 
+    console.log('[getOrderDeliveryLocation] Request for orderId:', orderId, 'userId:', userId);
+
     const order = await orderModel.findById(orderId);
 
     if (!order) {
+      console.log('[getOrderDeliveryLocation] Order not found');
       return res.json({ success: false, message: "Order not found" });
     }
 
+    console.log('[getOrderDeliveryLocation] Order found, assignedDeliveryPerson:', order.assignedDeliveryPerson);
+
     // Check if user is the customer or admin
-    if (order.userId !== userId && (await userModel.findById(userId)).role !== "admin") {
+    const currentUser = await userModel.findById(userId);
+    const isCustomer = order.userId === userId;
+    const isAdmin = currentUser && currentUser.role === "admin";
+    const isDeliveryPerson = order.assignedDeliveryPerson?.toString() === userId;
+
+    console.log('[getOrderDeliveryLocation] Permissions - isCustomer:', isCustomer, 'isAdmin:', isAdmin, 'isDeliveryPerson:', isDeliveryPerson);
+
+    if (!isCustomer && !isAdmin && !isDeliveryPerson) {
+      console.log('[getOrderDeliveryLocation] Unauthorized access');
       return res.json({ success: false, message: "Unauthorized" });
     }
 
     if (!order.assignedDeliveryPerson) {
+      console.log('[getOrderDeliveryLocation] No delivery person assigned yet');
       return res.json({ success: false, message: "No delivery person assigned yet" });
     }
 
     const location = await locationModel.findOne({ userId: order.assignedDeliveryPerson });
 
+    console.log('[getOrderDeliveryLocation] Location found:', location ? 'yes' : 'no', location);
+
     if (!location) {
+      console.log('[getOrderDeliveryLocation] Delivery location not available');
       return res.json({ success: false, message: "Delivery location not available" });
     }
 
     res.json({ success: true, location, deliveryPerson: order.assignedDeliveryPerson });
   } catch (error) {
-    console.log(error);
+    console.error('[getOrderDeliveryLocation] Error:', error);
     res.json({ success: false, message: "Error" });
   }
 };

@@ -63,6 +63,7 @@ class TrackingService {
         });
 
         this.socket.on('LOCATION_UPDATE', (data) => {
+          console.log('[trackingService] Received LOCATION_UPDATE event:', data);
           this.handleLocationUpdate(data);
         });
 
@@ -131,6 +132,7 @@ class TrackingService {
   }
 
   handleLocationUpdate(data) {
+    console.log('[trackingService] Emitting locationUpdate event:', data);
     this.emit('locationUpdate', data);
   }
 
@@ -172,11 +174,16 @@ class TrackingService {
   }
 
   sendLocation(latitude, longitude, accuracy) {
-    return this.sendMessage('LOCATION_UPDATE', {
+    console.log('[trackingService] Sending location:', { latitude, longitude, accuracy, isConnected: this.isConnected });
+    const result = this.sendMessage('LOCATION_UPDATE', {
       latitude,
       longitude,
       accuracy,
     });
+    if (!result) {
+      console.warn('[trackingService] Failed to send location - WebSocket not connected');
+    }
+    return result;
   }
 
   acceptOrder(orderId) {

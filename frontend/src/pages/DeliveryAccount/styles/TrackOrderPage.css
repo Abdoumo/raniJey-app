@@ -1,0 +1,522 @@
+.track-order-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  gap: 20px;
+}
+
+.back-button {
+  padding: 10px 16px;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.back-button:hover {
+  background: #f5f5f5;
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+.order-info-badge {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.success-banner {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 15px 20px;
+  border-radius: 8px;
+  border-left: 4px solid #2e7d32;
+  margin-bottom: 20px;
+  font-weight: 600;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.track-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  min-height: 600px;
+}
+
+.map-panel {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 600px;
+  position: relative;
+}
+
+.map-container {
+  width: 100%;
+  height: 600px;
+  border-radius: 12px;
+  background: #f0f0f0;
+  display: block;
+}
+
+.map-container .leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  background: #fff !important;
+  font-family: inherit;
+}
+
+.map-container .leaflet-map-pane,
+.map-container .leaflet-tile-pane,
+.map-container .leaflet-overlay-pane {
+  width: 100%;
+  height: 100%;
+}
+
+.map-legend {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 400;
+  font-size: 13px;
+}
+
+.legend-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: #666;
+}
+
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.legend-marker {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.legend-marker.shop-marker {
+  color: #4169E1;
+}
+
+.legend-marker.delivery-marker {
+  color: #228B22;
+}
+
+.legend-marker.customer-marker {
+  color: #DC143C;
+}
+
+.legend-label {
+  font-size: 12px;
+}
+
+.distance-label {
+  background: none !important;
+  border: none !important;
+}
+
+.distance-label-text {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.info-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.panel-section {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.panel-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.panel-section h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.status-grid,
+.details-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+  flex: 1;
+}
+
+.status-value {
+  font-size: 13px;
+  color: #333;
+  font-weight: 600;
+  text-align: right;
+}
+
+.details-content p {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.details-content strong {
+  color: #333;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.deliver-button {
+  width: 100%;
+  padding: 14px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.deliver-button:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.notice-box {
+  background: #fff8e1;
+  color: #f57f17;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  border-left: 4px solid #f57f17;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.track-page-loading,
+.track-page-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f5f5f5;
+  color: #333;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #ff6b35;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.track-page-loading p {
+  font-size: 16px;
+  color: #666;
+}
+
+.track-page-error {
+  text-align: center;
+}
+
+.track-page-error h2 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  color: #c62828;
+}
+
+.track-page-error p {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.back-to-orders-btn {
+  padding: 10px 24px;
+  background: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-to-orders-btn:hover {
+  background: #e55a27;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+@media (max-width: 1024px) {
+  .track-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-panel {
+    height: 450px;
+  }
+
+  .map-container {
+    height: 450px;
+  }
+
+  .map-legend {
+    bottom: 15px;
+    right: 15px;
+    padding: 10px 14px;
+  }
+
+  .info-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .track-order-page {
+    padding: 15px;
+  }
+
+  .page-header {
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .page-header h1 {
+    font-size: 22px;
+    flex: 0 1 100%;
+    order: 2;
+  }
+
+  .back-button {
+    order: 1;
+    flex: 1;
+  }
+
+  .order-info-badge {
+    order: 3;
+    flex: 1;
+    text-align: right;
+  }
+
+  .track-layout {
+    gap: 15px;
+  }
+
+  .map-panel {
+    height: 350px;
+  }
+
+  .map-container {
+    height: 350px;
+  }
+
+  .map-legend {
+    bottom: 12px;
+    right: 12px;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .legend-item {
+    margin-bottom: 5px;
+  }
+
+  .legend-label {
+    font-size: 11px;
+  }
+
+  .info-panel {
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .panel-section {
+    padding-bottom: 12px;
+  }
+
+  .panel-section h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .status-row,
+  .details-content p {
+    font-size: 12px;
+  }
+
+  .deliver-button {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .track-order-page {
+    padding: 10px;
+  }
+
+  .page-header {
+    margin-bottom: 15px;
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .order-info-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .success-banner {
+    padding: 12px 15px;
+    font-size: 13px;
+  }
+
+  .map-panel {
+    height: 300px;
+  }
+
+  .map-container {
+    height: 300px;
+  }
+
+  .map-legend {
+    bottom: 10px;
+    right: 10px;
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .legend-item {
+    margin-bottom: 4px;
+    gap: 6px;
+  }
+
+  .legend-label {
+    font-size: 10px;
+  }
+
+  .legend-marker {
+    font-size: 16px;
+  }
+
+  .info-panel {
+    padding: 12px;
+  }
+
+  .panel-section h3 {
+    font-size: 13px;
+  }
+}

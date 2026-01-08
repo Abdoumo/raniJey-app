@@ -22,6 +22,7 @@ const Cart = () => {
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [loadingDeliveryFee, setLoadingDeliveryFee] = useState(false);
   const [permissionError, setPermissionError] = useState(null);
+  const [deliveryType, setDeliveryType] = useState("standard");
   const lastFetchedDistanceRef = useRef(null);
   const permissionRequestedRef = useRef(false);
   const debounceTimerRef = useRef(null);
@@ -190,12 +191,40 @@ const Cart = () => {
               </div>
             </div>
             <hr />
+            <p style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a", marginBottom: "12px" }}>Delivery Option</p>
+            <div className="delivery-options-cart">
+              <label className="delivery-option-cart">
+                <input
+                  type="radio"
+                  value="standard"
+                  checked={deliveryType === "standard"}
+                  onChange={(e) => setDeliveryType(e.target.value)}
+                />
+                <span className="delivery-label-cart">Standard Delivery</span>
+              </label>
+              <label className="delivery-option-cart">
+                <input
+                  type="radio"
+                  value="door-to-door"
+                  checked={deliveryType === "door-to-door"}
+                  onChange={(e) => setDeliveryType(e.target.value)}
+                />
+                <span className="delivery-label-cart">Door-to-Door Delivery <span className="delivery-fee-cart">+50DA</span></span>
+              </label>
+            </div>
+            <hr />
+            {deliveryType === "door-to-door" && (
+              <div className="cart-total-details">
+                <p>Door-to-Door Premium</p>
+                <p>Da50</p>
+              </div>
+            )}
             <div className="cart-total-details">
               <b>Total</b>
-              <b>Da{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee}</b>
+              <b>Da{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee + (deliveryType === "door-to-door" ? 50 : 0)}</b>
             </div>
           </div>
-          <button onClick={()=>navigate('/order')}>PROCEED TO CHECKOUT</button>
+          <button onClick={()=>navigate('/order', { state: { deliveryType } })}>PROCEED TO CHECKOUT</button>
         </div>
         <div className="cart-promocode">
           <div>

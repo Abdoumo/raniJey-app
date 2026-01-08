@@ -28,12 +28,14 @@ const placeOrder = async (req, res) => {
 
     const newOrder = new orderModel({
       userId: req.body.userId,
+      shopId: req.body.shopId || null,
       items: req.body.items,
       amount: req.body.amount,
       address: req.body.address,
-      payment: true, // COD - mark as approved for delivery (payment collected on delivery)
+      payment: true,
       status: "Pending",
       deliveryLocation: req.body.deliveryLocation || null,
+      deliveryType: req.body.deliveryType || "standard",
     });
     await newOrder.save();
     await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
@@ -122,7 +124,11 @@ const getNearestOrders = async (req, res) => {
     // Verify delivery person role (optional - can work without auth, but better with it)
     if (deliveryPersonId) {
       const user = await userModel.findById(deliveryPersonId);
-      if (user && user.role !== "delivery" && user.role !== "livreur") {
+      if (!user) {
+        return res.json({ success: false, message: "User not found" });
+      }
+      if (user.role !== "delivery" && user.role !== "livreur") {
+        console.log(`[getNearestOrders] User ${deliveryPersonId} has role '${user.role}', not delivery personnel`);
         return res.json({ success: false, message: "Only delivery personnel can view orders" });
       }
     }
@@ -130,7 +136,11 @@ const getNearestOrders = async (req, res) => {
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
 
-    console.log(`[getNearestOrders] Delivery person at: ${lat}, ${lon}`);
+    console.log(`[getNearestOrders] Delivery person ${deliveryPersonId} at: ${lat}, ${lon}`);
+
+    // Debug: Check total orders in database
+    const totalOrdersInDB = await orderModel.countDocuments();
+    console.log(`[getNearestOrders] Total orders in database: ${totalOrdersInDB}`);
 
     // Get all available orders (not assigned, paid, not delivered/cancelled)
     // Include orders with or without delivery location
@@ -140,7 +150,12 @@ const getNearestOrders = async (req, res) => {
       status: { $nin: ["Delivered", "Cancelled"] },
     }).sort({ date: -1 }).limit(50);
 
-    console.log(`[getNearestOrders] Found ${orders.length} total available orders`);
+    console.log(`[getNearestOrders] Found ${orders.length} available orders matching filters`);
+
+    // Debug: Log first order for inspection if any exist
+    if (orders.length > 0) {
+      console.log(`[getNearestOrders] First order sample:`, JSON.stringify(orders[0], null, 2));
+    }
 
     // Separate and process orders with and without delivery location
     const ordersWithLocation = orders.filter(o => o.deliveryLocation && o.deliveryLocation.latitude && o.deliveryLocation.longitude);
@@ -159,8 +174,10 @@ const getNearestOrders = async (req, res) => {
           order.deliveryLocation.longitude
         ),
       }))
-      .filter((order) => order.distance <= 50) // Filter to 50km radius
+      .filter((order) => order.distance <= 500) // Filter to 500km radius
       .sort((a, b) => a.distance - b.distance);
+
+    console.log(`[getNearestOrders] Orders within 50km radius: ${ordersWithDistance.length}`);
 
     // Orders without location (address only) - shown after distance-sorted orders
     const ordersWithoutDistanceInfo = ordersWithoutLocation.map((order) => ({
@@ -171,14 +188,16 @@ const getNearestOrders = async (req, res) => {
     // Combine: distance-based orders first, then address-only orders
     const allOrders = [...ordersWithDistance, ...ordersWithoutDistanceInfo].slice(0, 20);
 
+    console.log(`[getNearestOrders] Returning ${allOrders.length} orders to delivery person`);
+
     res.json({
       success: true,
       totalOrders: allOrders.length,
       orders: allOrders,
     });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error('[getNearestOrders] Error:', error);
+    res.json({ success: false, message: "Error fetching orders" });
   }
 };
 
@@ -187,13 +206,23 @@ const getAvailableOrders = async (req, res) => {
   try {
     const deliveryPersonId = req.body.userId;
 
+    console.log(`[getAvailableOrders] Request from delivery person: ${deliveryPersonId}`);
+
     // Verify delivery person role
     if (deliveryPersonId) {
       const user = await userModel.findById(deliveryPersonId);
-      if (!user || (user.role !== "delivery" && user.role !== "livreur")) {
+      if (!user) {
+        console.log(`[getAvailableOrders] User ${deliveryPersonId} not found`);
+        return res.json({ success: false, message: "User not found" });
+      }
+      if (user.role !== "delivery" && user.role !== "livreur") {
+        console.log(`[getAvailableOrders] User ${deliveryPersonId} has role '${user.role}', not delivery personnel`);
         return res.json({ success: false, message: "Only delivery personnel can view orders" });
       }
     }
+
+    const totalOrdersInDB = await orderModel.countDocuments();
+    console.log(`[getAvailableOrders] Total orders in database: ${totalOrdersInDB}`);
 
     const orders = await orderModel.find({
       assignedDeliveryPerson: null,
@@ -203,14 +232,16 @@ const getAvailableOrders = async (req, res) => {
       .sort({ date: -1 })
       .limit(50);
 
+    console.log(`[getAvailableOrders] Found ${orders.length} available orders`);
+
     res.json({
       success: true,
       totalOrders: orders.length,
       orders,
     });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error('[getAvailableOrders] Error:', error);
+    res.json({ success: false, message: "Error fetching orders" });
   }
 };
 
@@ -341,6 +372,23 @@ const getOrder = async (req, res) => {
     if (customerUser) {
       orderData.customerName = customerUser.name;
       orderData.customerEmail = customerUser.email;
+    }
+
+    // Include shop details if shopId exists
+    console.log('[getOrder] Order shopId:', order.shopId);
+    if (order.shopId) {
+      try {
+        const shopModel = (await import('../models/shopModel.js')).default;
+        const shop = await shopModel.findById(order.shopId);
+        console.log('[getOrder] Shop fetched:', shop ? 'success' : 'not found');
+        if (shop) {
+          orderData.shop = shop;
+        }
+      } catch (err) {
+        console.warn('[getOrder] Could not fetch shop details:', err);
+      }
+    } else {
+      console.log('[getOrder] No shopId in order, order data keys:', Object.keys(order.toObject()));
     }
 
     res.json({

@@ -9,6 +9,18 @@ const userSchema = new mongoose.Schema(
     role: { type: String, default:"user" },
     cartData: { type: Object, default: {} },
     isActive: { type: Boolean, default: true },
+    addresses: [
+      {
+        _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+        label: { type: String, required: true },
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        zipCode: { type: String, required: true },
+        phone: { type: String, required: true },
+        isDefault: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     lastKnownLocation: {
       latitude: { type: Number, default: null },
       longitude: { type: Number, default: null },

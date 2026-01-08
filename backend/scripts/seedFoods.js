@@ -240,7 +240,7 @@ const foodList = [
 
 const seedFoods = async () => {
   try {
-    await mongoose.connect("mongodb://127.0.0.1:27017/fooddelivery");
+    await mongoose.connect(process.env.MONGO_URI || "mongodb://admin:uYL1dFsEtRYYt5P1@127.0.0.1:27017/fooddelivery?authSource=admin");
     console.log("MongoDB Connected");
 
     const existingFoods = await foodModel.countDocuments();

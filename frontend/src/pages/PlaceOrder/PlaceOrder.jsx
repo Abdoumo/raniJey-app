@@ -3,11 +3,12 @@ import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAutoTracking } from "../../hooks/useAutoTracking";
 
 const PlaceOrder = () => {
   const navigate= useNavigate();
+  const locationState = useLocation();
 
   const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems, shopLocation } =
     useContext(StoreContext);
@@ -26,6 +27,7 @@ const PlaceOrder = () => {
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [loadingDeliveryFee, setLoadingDeliveryFee] = useState(false);
   const [permissionError, setPermissionError] = useState(null);
+  const [deliveryType, setDeliveryType] = useState(locationState?.state?.deliveryType || "standard");
   const lastFetchedDistanceRef = useRef(null);
   const permissionRequestedRef = useRef(false);
   const debounceTimerRef = useRef(null);
@@ -55,9 +57,14 @@ const PlaceOrder = () => {
     event.preventDefault();
 
     let orderItems = [];
+    let shopId = null;
+
     food_list.forEach((item) => {
       const cartItem = cartItems[item._id];
       if (cartItem && cartItem.quantity > 0) {
+        if (!shopId && item.shopId) {
+          shopId = item.shopId;
+        }
         orderItems.push({
           _id: item._id,
           name: item.name,
@@ -99,8 +106,13 @@ const PlaceOrder = () => {
       let orderData = {
         address: data,
         items: orderItems,
-        amount: getTotalCartAmount() + deliveryFee,
+        amount: getTotalCartAmount() + deliveryFee + (deliveryType === "door-to-door" ? 50 : 0),
+        deliveryType: deliveryType,
       };
+
+      if (shopId) {
+        orderData.shopId = shopId;
+      }
 
       if (deliveryLocation) {
         orderData.deliveryLocation = deliveryLocation;
@@ -303,6 +315,27 @@ const PlaceOrder = () => {
           type="text"
           placeholder="Phone"
         />
+        <p className="title" style={{ marginTop: "20px" }}>Delivery Option</p>
+        <div className="delivery-options">
+          <label className="delivery-option">
+            <input
+              type="radio"
+              value="standard"
+              checked={deliveryType === "standard"}
+              onChange={(e) => setDeliveryType(e.target.value)}
+            />
+            <span className="delivery-label">Standard Delivery</span>
+          </label>
+          <label className="delivery-option">
+            <input
+              type="radio"
+              value="door-to-door"
+              checked={deliveryType === "door-to-door"}
+              onChange={(e) => setDeliveryType(e.target.value)}
+            />
+            <span className="delivery-label">Door-to-Door Delivery <span className="delivery-fee">+50DA</span></span>
+          </label>
+        </div>
       </div>
       <div className="place-order-right">
         <div className="cart-total">
@@ -343,10 +376,17 @@ const PlaceOrder = () => {
               </div>
             </div>
             <hr />
+            <hr />
+            {deliveryType === "door-to-door" && (
+              <div className="cart-total-details">
+                <p>Door-to-Door Premium</p>
+                <p>Da50</p>
+              </div>
+            )}
             <div className="cart-total-details">
               <b>Total</b>
               <b>
-                Da{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee}
+                Da{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee + (deliveryType === "door-to-door" ? 50 : 0)}
               </b>
             </div>
           </div>

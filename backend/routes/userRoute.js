@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, registerUser, getUserProfile, getUserById, updateUser, deleteUser, getAllUsers, toggleUserStatus } from "../controllers/userController.js";
+import { loginUser, registerUser, getUserProfile, getUserById, updateUser, deleteUser, getAllUsers, toggleUserStatus, addAddress, updateAddress, deleteAddress } from "../controllers/userController.js";
 import authMiddleware from "../middleware/auth.js";
 
 const userRouter = express.Router();
@@ -12,6 +12,11 @@ userRouter.post("/login", loginUser);
 userRouter.get("/profile", authMiddleware, getUserProfile);
 userRouter.put("/profile", authMiddleware, updateUser);
 userRouter.delete("/profile", authMiddleware, deleteUser);
+
+// Address management routes (protected)
+userRouter.post("/address/add", authMiddleware, addAddress);
+userRouter.put("/address/:addressId", authMiddleware, updateAddress);
+userRouter.delete("/address/:addressId", authMiddleware, deleteAddress);
 
 // Admin only routes
 userRouter.get("/list/all", authMiddleware, getAllUsers);

@@ -1,15 +1,15 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import './NearestOrders.css';
-import { StoreContext } from '../../context/StoreContext';
-import { useTracking } from '../../hooks/useTracking';
-import { useAutoTracking } from '../../hooks/useAutoTracking';
+import { useNavigate } from 'react-router-dom';
+import { StoreContext } from '../../../context/StoreContext';
+import { useTracking } from '../../../hooks/useTracking';
+import { useAutoTracking } from '../../../hooks/useAutoTracking';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import '../styles/DeliveryDashboard.css';
 
-const NearestOrders = () => {
+const DeliveryDashboard = () => {
   const { url, token, userRole } = useContext(StoreContext);
   const navigate = useNavigate();
   const mapRef = useRef(null);
@@ -17,17 +17,7 @@ const NearestOrders = () => {
   const markersRef = useRef([]);
   const fetchIntervalRef = useRef(null);
 
-  // Only delivery persons can access this page
-  useEffect(() => {
-    if (userRole === 'user') {
-      navigate('/myorders');
-    }
-  }, [userRole, navigate]);
-
-  // Auto-tracking location
   const { location: autoLocation, error: locationError } = useAutoTracking();
-
-  // Manual state for display
   const [displayLocation, setDisplayLocation] = useState(null);
   const [nearestOrders, setNearestOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
@@ -36,11 +26,9 @@ const NearestOrders = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('available');
 
-  // WebSocket tracking - only initialize if user is logged in with valid ID
   const userId = token ? localStorage.getItem('userId') : null;
-  const { isConnected, sendLocation, subscribeToOrder } = useTracking(url, token, userId, userRole || 'user');
+  const { isConnected, sendLocation, subscribeToOrder } = useTracking(url, token, userId, userRole || 'delivery');
 
-  // Update display location when auto-location changes
   useEffect(() => {
     if (autoLocation) {
       setDisplayLocation(autoLocation);
@@ -136,21 +124,21 @@ const NearestOrders = () => {
     mapInstance.current.setView([lat, lng], mapInstance.current.getZoom());
   };
 
-  const filterOrdersByDistance = (orders, userLocation) => {
-    const calculateDistance = (lat1, lon1, lat2, lon2) => {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * (Math.PI / 180);
-      const dLon = (lon2 - lon1) * (Math.PI / 180);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) *
-          Math.cos(lat2 * (Math.PI / 180)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    };
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
+  const filterOrdersByDistance = (orders, userLocation) => {
     const ordersWithLocation = [];
     const ordersWithoutLocation = [];
 
@@ -181,27 +169,18 @@ const NearestOrders = () => {
     });
 
     ordersWithLocation.sort((a, b) => a.distance - b.distance);
-    const combined = [...ordersWithLocation, ...ordersWithoutLocation].slice(0, 20);
-
-    return combined;
+    return [...ordersWithLocation, ...ordersWithoutLocation].slice(0, 20);
   };
 
   const fetchNearestOrders = async (location) => {
-    if (!location) {
-      console.log('[NearestOrders] Waiting for location data');
-      setError('Waiting for location...');
-      return;
-    }
-
-    if (!token) {
-      console.log('[NearestOrders] No token, user not logged in');
-      setError('Please login first');
+    if (!location || !token) {
+      console.log('[DeliveryDashboard] Missing location or token:', { hasLocation: !!location, hasToken: !!token });
       return;
     }
 
     try {
       setLoading(true);
-      console.log('[NearestOrders] Fetching orders for location:', location);
+      console.log('[DeliveryDashboard] Fetching orders for location:', location);
       let response;
       let endpointUsed = '';
 
@@ -213,19 +192,17 @@ const NearestOrders = () => {
 
       for (const endpoint of endpoints) {
         try {
-          console.log(`[NearestOrders] Trying endpoint: ${endpoint.url}`);
+          console.log(`[DeliveryDashboard] Trying endpoint: ${endpoint.url}`);
           response = await axios.get(endpoint.url, {
             params: endpoint.params,
             headers: { token },
           });
           endpointUsed = endpoint.url;
-          console.log(`[NearestOrders] Successfully fetched from ${endpoint.url}:`, response.data);
+          console.log(`[DeliveryDashboard] Successfully fetched from ${endpoint.url}:`, response.data);
           break;
         } catch (err) {
-          console.log(`[NearestOrders] Endpoint ${endpoint.url} failed:`, err.response?.status, err.response?.data?.message);
-          if (err.response?.status === 404) {
-            continue;
-          } else if (err.response?.status === 401 || err.response?.status === 403) {
+          console.log(`[DeliveryDashboard] Endpoint ${endpoint.url} failed:`, err.response?.status, err.response?.data?.message);
+          if (err.response?.status === 404 || err.response?.status === 401 || err.response?.status === 403) {
             continue;
           } else {
             throw err;
@@ -234,56 +211,38 @@ const NearestOrders = () => {
       }
 
       if (!response) {
-        console.error('[NearestOrders] No endpoint succeeded');
+        console.error('[DeliveryDashboard] No endpoint succeeded');
         setError('Unable to fetch nearby orders. Please check your connection and try again.');
         return;
       }
 
       if (response.data.success) {
         const orders = response.data.orders || response.data.data || [];
-        console.log(`[NearestOrders] Received ${orders.length} orders from backend`);
+        console.log(`[DeliveryDashboard] Received ${orders.length} orders from backend`);
 
         if (!endpointUsed.includes('nearest')) {
           const nearbyOrders = filterOrdersByDistance(orders, location);
-          console.log(`[NearestOrders] Filtered to ${nearbyOrders.length} nearby orders within 50km`);
+          console.log(`[DeliveryDashboard] Filtered to ${nearbyOrders.length} nearby orders`);
           setNearestOrders(nearbyOrders);
           addOrderMarkers(nearbyOrders);
-
-          if (nearbyOrders.length === 0) {
-            setError('No nearby orders found. Deliveries will appear here when they become available.');
-          } else {
-            setError(null);
-          }
+          setError(nearbyOrders.length === 0 ? 'No nearby orders found. Deliveries will appear here when they become available.' : null);
         } else {
-          console.log(`[NearestOrders] Using ${orders.length} orders from nearest endpoint`);
+          console.log(`[DeliveryDashboard] Using ${orders.length} orders from nearest endpoint`);
           setNearestOrders(orders);
           addOrderMarkers(orders);
-
-          if (orders.length === 0) {
-            setError('No nearby orders found. Deliveries will appear here when they become available.');
-          } else {
-            setError(null);
-          }
+          setError(orders.length === 0 ? 'No nearby orders found. Deliveries will appear here when they become available.' : null);
         }
       } else {
-        console.error('[NearestOrders] API returned failure:', response.data.message);
+        console.error('[DeliveryDashboard] API returned failure:', response.data.message);
         setError(response.data.message || 'Failed to fetch orders');
       }
 
       fetchAcceptedOrders();
     } catch (err) {
-      console.error('[NearestOrders] Error fetching nearest orders:', err);
-      if (err.response?.status === 403) {
-        console.error('[NearestOrders] Permission denied - user may not have delivery role');
-        setError('You do not have permission to view orders. Please ensure you are logged in as a delivery person.');
-      } else if (err.response?.status === 401) {
-        console.error('[NearestOrders] Session expired');
-        setError('Session expired. Please login again.');
-      } else {
-        const errorMsg = err.response?.data?.message || err.message || 'Error fetching orders';
-        console.error('[NearestOrders] Error details:', { status: err.response?.status, message: errorMsg });
-        setError(errorMsg);
-      }
+      console.error('[DeliveryDashboard] Error fetching orders:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Error fetching orders';
+      console.error('[DeliveryDashboard] Error details:', { status: err.response?.status, message: errorMsg });
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -349,7 +308,6 @@ const NearestOrders = () => {
     }
   };
 
-  // Initialize map and fetch orders when location is available
   useEffect(() => {
     if (displayLocation && mapRef.current && !mapInstance.current) {
       initializeMap(displayLocation.latitude, displayLocation.longitude);
@@ -360,14 +318,11 @@ const NearestOrders = () => {
     }
   }, [displayLocation]);
 
-  // Auto-fetch orders every 30 seconds
   useEffect(() => {
     if (!token || !displayLocation) return;
 
-    // Fetch immediately
     fetchNearestOrders(displayLocation);
 
-    // Set up interval for periodic updates
     fetchIntervalRef.current = setInterval(() => {
       fetchNearestOrders(displayLocation);
     }, 30000);
@@ -379,7 +334,6 @@ const NearestOrders = () => {
     };
   }, [displayLocation, token]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (fetchIntervalRef.current) {
@@ -391,11 +345,11 @@ const NearestOrders = () => {
   const displayOrders = activeTab === 'available' ? nearestOrders : acceptedOrders;
 
   return (
-    <div className="nearest-orders">
-      <div className="nearest-orders-container">
-        <div className="orders-header">
-          <h1>Delivery Orders</h1>
-          <div className="tabs">
+    <div className="delivery-dashboard">
+      <div className="dashboard-container">
+        <div className="dashboard-header">
+          <h1>Delivery Dashboard</h1>
+          <div className="header-tabs">
             <button
               className={`tab-btn ${activeTab === 'available' ? 'active' : ''}`}
               onClick={() => setActiveTab('available')}
@@ -406,91 +360,67 @@ const NearestOrders = () => {
               className={`tab-btn ${activeTab === 'accepted' ? 'active' : ''}`}
               onClick={() => setActiveTab('accepted')}
             >
-              My Accepted Orders ({acceptedOrders.length})
+              My Orders ({acceptedOrders.length})
             </button>
           </div>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-        {locationError && <div className="error-message">{locationError}</div>}
+        {error && <div className="error-banner">{error}</div>}
+        {locationError && <div className="error-banner">{locationError}</div>}
 
         {displayLocation ? (
           <>
             {activeTab === 'available' && (
-              <div className="location-info">
+              <div className="location-status">
                 <h3>📍 Location Tracking Active</h3>
-                <div className="location-details">
-                  <p>
-                    <strong>Latitude:</strong> {displayLocation.latitude.toFixed(6)}
-                  </p>
-                  <p>
-                    <strong>Longitude:</strong> {displayLocation.longitude.toFixed(6)}
-                  </p>
-                  <p>
-                    <strong>Accuracy:</strong> ±{displayLocation.accuracy.toFixed(0)} meters
-                  </p>
-                  <p>
-                    <strong>Updated:</strong> {new Date(displayLocation.timestamp).toLocaleTimeString()}
-                  </p>
+                <div className="location-coords">
+                  <p><strong>Latitude:</strong> {displayLocation.latitude.toFixed(6)}</p>
+                  <p><strong>Longitude:</strong> {displayLocation.longitude.toFixed(6)}</p>
+                  <p><strong>Accuracy:</strong> ±{displayLocation.accuracy.toFixed(0)}m</p>
+                  <p><strong>Updated:</strong> {new Date(displayLocation.timestamp).toLocaleTimeString()}</p>
                 </div>
               </div>
             )}
 
             {loading && activeTab === 'available' && (
-              <div className="loading-message">
+              <div className="loading-indicator">
                 <p>⏳ Fetching nearby orders...</p>
               </div>
             )}
 
             {activeTab === 'available' && (
-              <div className="map-container">
-                <div
-                  ref={mapRef}
-                  style={{
-                    height: '400px',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
+              <div className="map-wrapper">
+                <div ref={mapRef} className="map-display" />
               </div>
             )}
 
             {displayOrders.length > 0 && (
-              <div className="orders-list">
+              <div className="orders-section">
                 <h3>
                   {activeTab === 'available'
                     ? `Nearby Orders (${nearestOrders.length})`
                     : `My Accepted Orders (${acceptedOrders.length})`}
                 </h3>
-                <div className="orders-grid">
+                <div className="orders-list-grid">
                   {displayOrders.map((order) => (
-                    <div key={order._id} className="order-card">
-                      <div className="order-header">
-                        <h4>Order {order._id.substring(0, 8)}...</h4>
-                        <span className="distance">
+                    <div key={order._id} className="order-card-item">
+                      <div className="card-header">
+                        <h4>Order #{order._id.substring(0, 8)}...</h4>
+                        <span className="order-distance">
                           {order.distance !== null && order.distance !== undefined
                             ? `${order.distance.toFixed(2)} km`
                             : 'Address-based'}
                         </span>
                       </div>
-                      <div className="order-details">
-                        <p>
-                          <strong>Customer:</strong> {order.customerName || 'Unknown'}
-                        </p>
-                        <p>
-                          <strong>Items:</strong> {order.items?.length || 0}
-                        </p>
-                        <p>
-                          <strong>Total:</strong> Da{order.amount || 0}
-                        </p>
-                        <p>
-                          <strong>Status:</strong> {order.status || 'Pending'}
-                        </p>
+                      <div className="card-content">
+                        <p><strong>Customer:</strong> {order.customerName || 'Unknown'}</p>
+                        <p><strong>Items:</strong> {order.items?.length || 0}</p>
+                        <p><strong>Total:</strong> Da{order.amount || 0}</p>
+                        <p><strong>Status:</strong> {order.status || 'Pending'}</p>
                       </div>
                       {activeTab === 'available' && (
                         <button
-                          className="accept-order-btn"
+                          className="accept-btn"
                           onClick={() => acceptOrder(order._id)}
                           disabled={acceptingOrderId === order._id}
                         >
@@ -499,10 +429,10 @@ const NearestOrders = () => {
                       )}
                       {activeTab === 'accepted' && (
                         <button
-                          className="view-details-btn"
-                          onClick={() => navigate(`/delivery-order/${order._id}`)}
+                          className="track-btn"
+                          onClick={() => navigate(`/delivery/account/track-order/${order._id}`)}
                         >
-                          View Details & Location
+                          Track Order
                         </button>
                       )}
                     </div>
@@ -512,7 +442,7 @@ const NearestOrders = () => {
             )}
 
             {displayOrders.length === 0 && !loading && !error && (
-              <div className="placeholder">
+              <div className="empty-state">
                 <p>
                   {activeTab === 'available'
                     ? 'No orders available at the moment. Checking periodically...'
@@ -522,7 +452,7 @@ const NearestOrders = () => {
             )}
           </>
         ) : (
-          <div className="placeholder">
+          <div className="empty-state">
             <p>🔍 Checking location permission...</p>
             <p style={{ fontSize: '0.9em', color: '#666', marginTop: '8px' }}>
               {locationError ? locationError : 'If prompted, please allow access to your location.'}
@@ -534,4 +464,4 @@ const NearestOrders = () => {
   );
 };
 
-export default NearestOrders;
+export default DeliveryDashboard;

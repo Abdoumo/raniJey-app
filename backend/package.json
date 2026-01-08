@@ -7,7 +7,9 @@
   "scripts": {
     "server": "nodemon server.js",
     "create-admin": "node scripts/createAdmin.js",
-    "seed-foods": "node scripts/seedFoods.js"
+    "seed-foods": "node scripts/seedFoods.js",
+    "seed-orders": "node scripts/seedOrders.js",
+    "check-orders": "node scripts/checkOrders.js"
   },
   "author": "",
   "license": "ISC",
