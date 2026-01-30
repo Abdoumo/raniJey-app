@@ -46,6 +46,7 @@ const StoreContextProvider = (props) => {
     userId,
     setUserId,
     isLoading,
+    url: "http://localhost:4000",
   };
   return (
     <StoreContext.Provider value={contextValue}>
