@@ -74,9 +74,12 @@ const createCoupon = async (req, res) => {
 const listCoupons = async (req, res) => {
   try {
     const userId = req.body.userId;
+    console.log("📋 Fetching coupons for userId:", userId);
     const user = await userModel.findById(userId);
+    console.log("👤 User found:", user ? `${user.name} (role: ${user.role})` : "❌ User not found");
 
     if (!user || user.role !== "admin") {
+      console.log("❌ Authorization failed - User is not admin");
       return res.json({ success: false, message: "Unauthorized: Admin access required" });
     }
 

@@ -34,13 +34,17 @@ const corsOptions = {
       'https://rani-jay.com',
       'https://admin.rani-jay.com',
       'http://localhost:5173',
+      'http://localhost:5174',
       'http://localhost:5175',
       'http://localhost:3000',
+      'http://localhost:4000',
     ];
 
     if (!origin || allowedOrigins.includes(origin)) {
+      console.log('✅ CORS allowed for origin:', origin);
       callback(null, true);
     } else {
+      console.log('❌ CORS blocked for origin:', origin);
       callback(new Error('CORS not allowed'));
     }
   },
