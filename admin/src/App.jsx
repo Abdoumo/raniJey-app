@@ -13,6 +13,7 @@ import DeliveryTracking from "./pages/DeliveryTracking/DeliveryTracking";
 import OrderTrackingMap from "./pages/OrderTrackingMap/OrderTrackingMap";
 import Coupons from "./pages/Coupons/Coupons";
 import Offers from "./pages/Offers/Offers";
+import ShopDiscounts from "./pages/ShopDiscounts/ShopDiscounts";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
@@ -44,6 +45,7 @@ const App = () => {
                   <Route path="/pricing" element={<Pricing url={url}/>} />
                   <Route path="/offers" element={<Offers url={url}/>} />
                   <Route path="/coupons" element={<Coupons url={url}/>} />
+                  <Route path="/shop-discounts" element={<ShopDiscounts url={url}/>} />
                   <Route path="/delivery-tracking" element={<DeliveryTracking url={url}/>} />
                 </>
               )}
