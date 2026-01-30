@@ -34,6 +34,7 @@ const corsOptions = {
       'https://rani-jay.com',
       'https://admin.rani-jay.com',
       'http://localhost:5173',
+      'http://localhost:5175',
       'http://localhost:3000',
     ];
 
