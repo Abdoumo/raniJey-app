@@ -541,7 +541,8 @@ const markDelivered = async (req, res) => {
 // Cancel order
 const cancelOrder = async (req, res) => {
   try {
-    const { orderId, reason } = req.body;
+    const { orderId } = req.params;
+    const { reason } = req.body;
     const userId = req.body.userId;
 
     if (!orderId) {
