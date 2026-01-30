@@ -46,7 +46,7 @@ const StoreContextProvider = (props) => {
     userId,
     setUserId,
     isLoading,
-    url: "https://backend.rani-jay.com/",
+    url: "https://backend.rani-jay.com",
   };
   return (
     <StoreContext.Provider value={contextValue}>
