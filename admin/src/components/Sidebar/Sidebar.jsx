@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import './Sidebar.css'
 import { assets } from '../../assets/assets'
 import { NavLink } from 'react-router-dom'
@@ -7,9 +7,10 @@ import { StoreContext } from '../../context/StoreContext'
 const Sidebar = () => {
   const { admin, userRole } = useContext(StoreContext)
   const isDelivery = userRole === 'delivery' || userRole === 'livreur'
+  const [isHidden, setIsHidden] = useState(false)
 
   return (
-    <div className='sidebar'>
+    <div className={`sidebar ${isHidden ? 'hidden' : ''}`}>
       <div className="sidebar-menu">
         {admin && (
           <>
@@ -112,6 +113,14 @@ const Sidebar = () => {
             <div className="sidebar-indicator"></div>
           </NavLink>
         )}
+
+        <button
+          className="sidebar-toggle-btn"
+          onClick={() => setIsHidden(!isHidden)}
+          title={isHidden ? 'Show Sidebar' : 'Hide Sidebar'}
+        >
+          {isHidden ? '→' : '←'}
+        </button>
       </div>
     </div>
   )

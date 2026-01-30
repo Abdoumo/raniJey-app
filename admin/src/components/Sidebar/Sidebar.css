@@ -133,3 +133,39 @@
         height: 16px;
     }
 }
+
+/* Sidebar Toggle */
+.sidebar-toggle-btn {
+    align-self: center;
+    margin-top: auto;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 44px;
+    height: 44px;
+    font-weight: bold;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Hidden sidebar state */
+.sidebar.hidden {
+    width: 0;
+    padding: 0;
+    border-right: none;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+.sidebar.hidden .sidebar-menu {
+    display: none;
+}
