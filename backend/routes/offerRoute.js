@@ -15,15 +15,17 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Public routes - must come before /:id route to prevent shadowing
+offerRouter.get("/active", getActiveOffers);
+
 // Admin only routes
 offerRouter.post("/create", authMiddleware, upload.single("image"), createOffer);
 offerRouter.get("/list", authMiddleware, listOffers);
+offerRouter.patch("/toggle-status/:id", authMiddleware, toggleOfferStatus);
 offerRouter.put("/:id", authMiddleware, upload.single("image"), updateOffer);
 offerRouter.delete("/:id", authMiddleware, deleteOffer);
-offerRouter.patch("/toggle-status/:id", authMiddleware, toggleOfferStatus);
 
-// Public route
-offerRouter.get("/active", getActiveOffers);
+// Public route - must come last
 offerRouter.get("/:id", getOffer);
 
 export default offerRouter;

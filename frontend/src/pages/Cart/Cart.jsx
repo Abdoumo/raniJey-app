@@ -4,6 +4,7 @@ import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
 import { useAutoTracking } from "../../hooks/useAutoTracking";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const Cart = () => {
   const {
@@ -23,6 +24,10 @@ const Cart = () => {
   const [loadingDeliveryFee, setLoadingDeliveryFee] = useState(false);
   const [permissionError, setPermissionError] = useState(null);
   const [deliveryType, setDeliveryType] = useState("standard");
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState(null);
+  const [discount, setDiscount] = useState(0);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
   const lastFetchedDistanceRef = useRef(null);
   const permissionRequestedRef = useRef(false);
   const debounceTimerRef = useRef(null);
@@ -111,6 +116,49 @@ const Cart = () => {
   // Handle location permission button click
   const handleEnableLocation = async () => {
     await requestLocationPermission();
+  };
+
+  // Validate and apply coupon
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error("Please enter a coupon code");
+      return;
+    }
+
+    try {
+      setApplyingCoupon(true);
+      const subtotal = getTotalCartAmount();
+
+      const response = await axios.post(
+        url + `/api/coupon/validate/${couponCode.toUpperCase()}`,
+        { orderAmount: subtotal }
+      );
+
+      if (response.data.success && response.data.isValid) {
+        setCoupon(response.data.coupon);
+        setDiscount(response.data.discount);
+        toast.success(`Coupon applied! You saved Da${response.data.discount}`);
+      } else {
+        toast.error(response.data.message || "Invalid coupon code");
+        setCoupon(null);
+        setDiscount(0);
+      }
+    } catch (error) {
+      console.error("Error validating coupon:", error);
+      toast.error("Error applying coupon");
+      setCoupon(null);
+      setDiscount(0);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  // Remove coupon
+  const handleRemoveCoupon = () => {
+    setCouponCode("");
+    setCoupon(null);
+    setDiscount(0);
+    toast.success("Coupon removed");
   };
 
   return (
@@ -219,9 +267,16 @@ const Cart = () => {
                 <p>Da50</p>
               </div>
             )}
+            {coupon && (
+              <div className="cart-total-details discount-row">
+                <p>Discount ({coupon.code})</p>
+                <p style={{color: "#27ae60"}}>-Da{discount}</p>
+              </div>
+            )}
+            <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>Da{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee + (deliveryType === "door-to-door" ? 50 : 0)}</b>
+              <b>Da{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee + (deliveryType === "door-to-door" ? 50 : 0) - discount}</b>
             </div>
           </div>
           <button onClick={()=>navigate('/order', { state: { deliveryType } })}>PROCEED TO CHECKOUT</button>
@@ -229,10 +284,35 @@ const Cart = () => {
         <div className="cart-promocode">
           <div>
             <p>If you have a promocode, Enter it here</p>
-            <div className="cart-promocode-input">
-              <input type="text" placeholder="promo code" />
-              <button>Submit</button>
-            </div>
+            {coupon ? (
+              <div className="cart-promocode-input">
+                <input
+                  type="text"
+                  placeholder="promo code"
+                  value={coupon.code}
+                  disabled
+                  style={{backgroundColor: "#f0f0f0", cursor: "not-allowed"}}
+                />
+                <button onClick={handleRemoveCoupon} style={{backgroundColor: "#ff6b6b"}}>Remove</button>
+              </div>
+            ) : (
+              <div className="cart-promocode-input">
+                <input
+                  type="text"
+                  placeholder="promo code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  onKeyPress={(e) => e.key === "Enter" && handleApplyCoupon()}
+                />
+                <button
+                  onClick={handleApplyCoupon}
+                  disabled={applyingCoupon}
+                  style={{opacity: applyingCoupon ? 0.6 : 1}}
+                >
+                  {applyingCoupon ? "..." : "Apply"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

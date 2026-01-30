@@ -1,6 +1,7 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import shopModel from "../models/shopModel.js";
+import { createNotification } from "./notificationController.js";
 
 // Haversine formula to calculate distance between two coordinates (in km)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -392,6 +393,22 @@ const acceptOrder = async (req, res) => {
 
     await order.save();
 
+    // Create notification for customer
+    await createNotification(order.userId, {
+      type: "order",
+      title: "Order Accepted",
+      message: `Your order #${orderId.slice(-8)} has been accepted by our delivery person and will be delivered soon.`,
+      relatedId: orderId,
+      relatedType: "order",
+      action: "order_accepted",
+      actionData: {
+        orderId,
+        previousStatus: "Pending",
+        newStatus: "Accepted",
+        deliveryPersonName: deliveryPerson.name,
+      },
+    });
+
     res.json({
       success: true,
       message: "Order accepted successfully",
@@ -490,9 +507,25 @@ const markDelivered = async (req, res) => {
     }
 
     // Update order status
+    const previousStatus = order.status;
     order.status = "Delivered";
     order.deliveredAt = new Date();
     await order.save();
+
+    // Create notification for customer
+    await createNotification(order.userId, {
+      type: "order",
+      title: "Order Delivered",
+      message: `Your order #${orderId.slice(-8)} has been successfully delivered!`,
+      relatedId: orderId,
+      relatedType: "order",
+      action: "order_delivered",
+      actionData: {
+        orderId,
+        previousStatus,
+        newStatus: "Delivered",
+      },
+    });
 
     res.json({
       success: true,
@@ -554,11 +587,28 @@ const cancelOrder = async (req, res) => {
     // Admin can cancel any order (no status restrictions)
 
     // Update order with cancellation details
+    const previousStatus = order.status;
     order.status = "Cancelled";
     order.cancelledAt = new Date();
     order.cancelReason = reason || "User requested cancellation";
 
     await order.save();
+
+    // Create notification for customer
+    await createNotification(order.userId, {
+      type: "order",
+      title: "Order Cancelled",
+      message: `Your order #${orderId.slice(-8)} has been cancelled. Reason: ${order.cancelReason}`,
+      relatedId: orderId,
+      relatedType: "order",
+      action: "order_cancelled",
+      actionData: {
+        orderId,
+        previousStatus,
+        newStatus: "Cancelled",
+        reason: order.cancelReason,
+      },
+    });
 
     res.json({
       success: true,

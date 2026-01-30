@@ -15,20 +15,22 @@ import {
 
 const couponRouter = express.Router();
 
+// Public routes - must come before /:id route to prevent shadowing
+couponRouter.get("/active", listActiveCoupons);
+couponRouter.post("/validate/:code", validateCoupon);
+
 // Admin only routes
 couponRouter.post("/create", authMiddleware, createCoupon);
 couponRouter.get("/list", authMiddleware, listCoupons);
+couponRouter.patch("/toggle-status/:id", authMiddleware, toggleCouponStatus);
 couponRouter.put("/:id", authMiddleware, updateCoupon);
 couponRouter.delete("/:id", authMiddleware, deleteCoupon);
-couponRouter.patch("/toggle-status/:id", authMiddleware, toggleCouponStatus);
 
 // User routes
 couponRouter.post("/apply", authMiddleware, applyCoupon);
 couponRouter.get("/usage-history", authMiddleware, getCouponUsageHistory);
 
-// Public routes (no auth required)
-couponRouter.get("/active", listActiveCoupons);
-couponRouter.post("/validate/:code", validateCoupon);
+// Public route - must come last
 couponRouter.get("/:id", getCoupon);
 
 export default couponRouter;

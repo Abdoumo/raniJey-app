@@ -61,6 +61,14 @@ const Sidebar = () => {
               <div className="sidebar-indicator"></div>
             </NavLink>
 
+            <NavLink to='/offers' className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
+              <div className="sidebar-icon-wrapper">
+                <img src={assets.order_icon} alt="Offers" className="sidebar-icon" />
+              </div>
+              <span className="sidebar-label">Offers</span>
+              <div className="sidebar-indicator"></div>
+            </NavLink>
+
             <NavLink to='/delivery-tracking' className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
               <div className="sidebar-icon-wrapper">
                 <img src={assets.order_icon} alt="Delivery Tracking" className="sidebar-icon" />
@@ -74,6 +82,14 @@ const Sidebar = () => {
                 <img src={assets.order_icon} alt="Users" className="sidebar-icon" />
               </div>
               <span className="sidebar-label">Users</span>
+              <div className="sidebar-indicator"></div>
+            </NavLink>
+
+            <NavLink to='/coupons' className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
+              <div className="sidebar-icon-wrapper">
+                <img src={assets.order_icon} alt="Coupons" className="sidebar-icon" />
+              </div>
+              <span className="sidebar-label">Coupons</span>
               <div className="sidebar-indicator"></div>
             </NavLink>
           </>

@@ -56,12 +56,12 @@ orderRouter.get("/nearest", authMiddleware, getNearestOrders);
 orderRouter.get("/available", authMiddleware, getAvailableOrders);
 orderRouter.get("/pending", authMiddleware, getPendingOrders);
 
-// Order details - generic route goes last
-orderRouter.get("/:orderId", authMiddleware, getOrder);
-
-// Order actions
+// Order actions - specific routes MUST come before generic /:orderId route
 orderRouter.post("/accept", authMiddleware, acceptOrder);
 orderRouter.post("/delivered", authMiddleware, markDelivered);
 orderRouter.post("/:orderId/cancel", authMiddleware, cancelOrder);
+
+// Order details - generic route goes last
+orderRouter.get("/:orderId", authMiddleware, getOrder);
 
 export default orderRouter;
