@@ -1,14 +1,35 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import "./Navbar.css";
 import { assets } from "../../assets/frontend_assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
-  const { getTotalCartAmount, token, setToken } = useContext(StoreContext);
+  const { getTotalCartAmount, token, setToken, url } = useContext(StoreContext);
+  const [userProfile, setUserProfile] = useState(null);
   const navigate=useNavigate();
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await axios.get(url + "/api/profile", {
+        headers: { token },
+      });
+      if (response.data.success) {
+        setUserProfile(response.data.user);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchUserProfile();
+    }
+  }, [token]);
 
   const logout=()=>{
     localStorage.removeItem("token");
@@ -81,8 +102,17 @@ const Navbar = ({ setShowLogin }) => {
           <button onClick={() => setShowLogin(true)}>sign in</button>
         ) : (
           <div className="navbar-profile">
-            <img src={assets.profile_icon} alt="" />
+            {userProfile?.profileImage ? (
+              <img
+                src={`${url}/images/${userProfile.profileImage}`}
+                alt="Profile"
+                className="profile-avatar"
+              />
+            ) : (
+              <img src={assets.profile_icon} alt="" />
+            )}
             <ul className="nav-profile-dropdown">
+              <li onClick={()=>navigate("/profile")}><img src={assets.profile_icon} alt="" /><p>My Profile</p></li>
               <li onClick={()=>navigate("/myorders")}><img src={assets.bag_icon} alt="" /><p>Orders</p></li>
               <li onClick={()=>navigate("/nearest-orders")}><img src={assets.parcel_icon} alt="" /><p>Nearest Orders</p></li>
               <hr />

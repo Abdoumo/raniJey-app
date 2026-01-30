@@ -1,5 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
+import shopModel from "../models/shopModel.js";
 
 // Haversine formula to calculate distance between two coordinates (in km)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -26,11 +27,60 @@ const placeOrder = async (req, res) => {
       return res.json({ success: false, message: "Address is required" });
     }
 
+    let orderAmount = req.body.amount;
+    let appliedDiscount = 0;
+    let discountDetails = null;
+
+    // Check if shop has active discount
+    if (req.body.shopId) {
+      const shop = await shopModel.findById(req.body.shopId);
+      if (shop && shop.discount && shop.discount.isActive) {
+        const discountData = shop.discount;
+        const now = new Date();
+
+        // Validate discount dates
+        const isDateValid = (!discountData.validFrom || new Date(discountData.validFrom) <= now) &&
+                           (!discountData.validUntil || new Date(discountData.validUntil) >= now);
+
+        // Validate minimum order amount
+        const isMinAmountMet = orderAmount >= discountData.minOrderAmount;
+
+        if (isDateValid && isMinAmountMet) {
+          // Calculate discount
+          if (discountData.discountType === "percentage") {
+            appliedDiscount = (orderAmount * discountData.discountValue) / 100;
+          } else if (discountData.discountType === "fixed") {
+            appliedDiscount = discountData.discountValue;
+          }
+
+          // Apply max discount limit if set
+          if (discountData.maxDiscountAmount && appliedDiscount > discountData.maxDiscountAmount) {
+            appliedDiscount = discountData.maxDiscountAmount;
+          }
+
+          // Don't allow discount to exceed order amount
+          if (appliedDiscount > orderAmount) {
+            appliedDiscount = orderAmount;
+          }
+
+          orderAmount = orderAmount - appliedDiscount;
+
+          discountDetails = {
+            discountType: discountData.discountType,
+            discountValue: discountData.discountValue,
+            discountApplied: Math.round(appliedDiscount * 100) / 100,
+            originalAmount: req.body.amount,
+            description: discountData.description,
+          };
+        }
+      }
+    }
+
     const newOrder = new orderModel({
       userId: req.body.userId,
       shopId: req.body.shopId || null,
       items: req.body.items,
-      amount: req.body.amount,
+      amount: Math.round(orderAmount * 100) / 100, // Final amount after discount
       address: req.body.address,
       payment: true,
       status: "Pending",
@@ -40,7 +90,20 @@ const placeOrder = async (req, res) => {
     await newOrder.save();
     await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
 
-    res.json({ success: true, message: "Order placed successfully. Please pay on delivery.", orderId: newOrder._id });
+    const responseData = {
+      success: true,
+      message: appliedDiscount > 0
+        ? `Order placed successfully with ${discountDetails.discountType === "percentage" ? discountDetails.discountValue + "%" : "$" + discountDetails.discountValue} discount applied!`
+        : "Order placed successfully. Please pay on delivery.",
+      orderId: newOrder._id,
+      finalAmount: newOrder.amount,
+    };
+
+    if (discountDetails) {
+      responseData.discount = discountDetails;
+    }
+
+    res.json(responseData);
   } catch (error) {
     console.error("Order placement error:", error);
     const errorMessage = error.message || "Failed to create order";
@@ -442,4 +505,70 @@ const markDelivered = async (req, res) => {
   }
 };
 
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getNearestOrders, getAvailableOrders, getPendingOrders, acceptOrder, getOrder, markDelivered };
+// Cancel order
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderId, reason } = req.body;
+    const userId = req.body.userId;
+
+    if (!orderId) {
+      return res.json({ success: false, message: "Order ID is required" });
+    }
+
+    if (!userId) {
+      return res.json({ success: false, message: "User not identified" });
+    }
+
+    // Get the order
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+
+    // Get the user making the request
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    const isAdmin = user.role === "admin";
+    const isOrderCustomer = order.userId === userId;
+
+    // Authorization check: only customer or admin can cancel
+    if (!isAdmin && !isOrderCustomer) {
+      return res.json({ success: false, message: "Unauthorized to cancel this order" });
+    }
+
+    // Check if order is already cancelled
+    if (order.status === "Cancelled") {
+      return res.json({ success: false, message: "Order is already cancelled" });
+    }
+
+    // Business rules for cancellation
+    if (!isAdmin) {
+      // Regular users can only cancel Pending orders
+      if (order.status !== "Pending") {
+        return res.json({ success: false, message: "Can only cancel orders that are pending. This order has already been accepted by a delivery person." });
+      }
+    }
+    // Admin can cancel any order (no status restrictions)
+
+    // Update order with cancellation details
+    order.status = "Cancelled";
+    order.cancelledAt = new Date();
+    order.cancelReason = reason || "User requested cancellation";
+
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Order cancelled successfully",
+      order: order,
+    });
+  } catch (error) {
+    console.error("Cancel order error:", error);
+    res.json({ success: false, message: "Error cancelling order" });
+  }
+};
+
+export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getNearestOrders, getAvailableOrders, getPendingOrders, acceptOrder, getOrder, markDelivered, cancelOrder };

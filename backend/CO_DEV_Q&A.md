@@ -11,8 +11,9 @@
 1. [Hero Section Search](#hero-section-search)
 2. [Best Choices / Offers / Free Delivery](#best-choices--offers--free-delivery)
 3. [Offers & Coupons Endpoint](#offers--coupons-endpoint)
-4. [Order Cancellation](#order-cancellation)
-5. [Location Tracking Workflow](#location-tracking-workflow)
+4. [Offers Carousel (Advertisements)](#offers-carousel-advertisements)
+5. [Order Cancellation](#order-cancellation)
+6. [Location Tracking Workflow](#location-tracking-workflow)
 
 ---
 
@@ -399,7 +400,378 @@ app.use("/api/coupon", couponRouter);
 
 ---
 
-## 4. Order Cancellation
+## 4. Offers Carousel (Advertisements)
+
+### Question
+> Offres publicitaires (Carousel): How to manage and display promotional offers in a carousel format on the frontend?
+
+### Answer ✅
+
+**Status:** FULLY IMPLEMENTED
+
+### Overview
+
+A complete advertising/offers system with:
+- Backend CRUD management
+- Image upload support
+- Admin control (activate/deactivate offers)
+- Public API for frontend carousel display
+- Display order customization
+
+### Backend API Endpoints
+
+#### Admin Endpoints (Protected - Authentication Required)
+
+##### 1. Create Offer
+```bash
+POST /api/offer/create
+Content-Type: multipart/form-data
+Authorization: token=JWT_TOKEN
+
+Form Data:
+- title: string (required) - e.g., "Summer Sale 50% OFF"
+- description: string (required) - e.g., "All items on sale this summer"
+- image: file (required) - image file (.jpg, .png, etc)
+- displayOrder: number (optional) - Order in carousel (0 by default)
+```
+
+**Request Example:**
+```bash
+curl -X POST http://localhost:4000/api/offer/create \
+  -H "token: YOUR_JWT_TOKEN" \
+  -F "title=Summer Sale" \
+  -F "description=50% off all items" \
+  -F "image=@/path/to/image.jpg" \
+  -F "displayOrder=1"
+```
+
+**Response Success:**
+```json
+{
+  "success": true,
+  "message": "Offer created successfully",
+  "offer": {
+    "_id": "507f1f77bcf86cd799439090",
+    "title": "Summer Sale",
+    "description": "50% off all items",
+    "image": "1705316400000summer.jpg",
+    "isActive": true,
+    "displayOrder": 1,
+    "createdAt": "2024-01-15T10:20:00Z",
+    "updatedAt": "2024-01-15T10:20:00Z"
+  }
+}
+```
+
+**Response Error:**
+```json
+{
+  "success": false,
+  "message": "Unauthorized: Admin access required"
+}
+```
+
+---
+
+##### 2. List All Offers (Admin View)
+```bash
+GET /api/offer/list
+Authorization: token=JWT_TOKEN
+```
+
+Includes both active and inactive offers.
+
+**Response:**
+```json
+{
+  "success": true,
+  "totalOffers": 3,
+  "offers": [
+    {
+      "_id": "507f1f77bcf86cd799439090",
+      "title": "Summer Sale",
+      "description": "50% off all items",
+      "image": "1705316400000summer.jpg",
+      "isActive": true,
+      "displayOrder": 1,
+      "createdAt": "2024-01-15T10:20:00Z"
+    },
+    {
+      "_id": "507f1f77bcf86cd799439091",
+      "title": "Free Delivery",
+      "description": "Free delivery on orders above $50",
+      "image": "1705316500000delivery.jpg",
+      "isActive": false,
+      "displayOrder": 2,
+      "createdAt": "2024-01-15T10:25:00Z"
+    }
+  ]
+}
+```
+
+---
+
+##### 3. Update Offer
+```bash
+PUT /api/offer/:id
+Content-Type: multipart/form-data
+Authorization: token=JWT_TOKEN
+
+Form Data (all optional):
+- title: string
+- description: string
+- image: file
+- displayOrder: number
+```
+
+**Request Example:**
+```bash
+curl -X PUT http://localhost:4000/api/offer/507f1f77bcf86cd799439090 \
+  -H "token: YOUR_JWT_TOKEN" \
+  -F "title=Updated Summer Sale" \
+  -F "displayOrder=2"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Offer updated successfully",
+  "offer": {
+    "_id": "507f1f77bcf86cd799439090",
+    "title": "Updated Summer Sale",
+    "description": "50% off all items",
+    "image": "1705316400000summer.jpg",
+    "isActive": true,
+    "displayOrder": 2,
+    "updatedAt": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+---
+
+##### 4. Toggle Offer Status (Activate/Deactivate)
+```bash
+PATCH /api/offer/toggle-status/:id
+Authorization: token=JWT_TOKEN
+```
+
+Toggles `isActive` between true and false.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Offer deactivated successfully",
+  "offer": {
+    "_id": "507f1f77bcf86cd799439090",
+    "isActive": false,
+    "title": "Summer Sale"
+  }
+}
+```
+
+---
+
+##### 5. Delete Offer
+```bash
+DELETE /api/offer/:id
+Authorization: token=JWT_TOKEN
+```
+
+Deletes the offer and its associated image file.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Offer deleted successfully"
+}
+```
+
+---
+
+#### Public Endpoints (No Authentication)
+
+##### 6. Get Active Offers (For Carousel)
+```bash
+GET /api/offer/active
+```
+
+Returns only active offers, sorted by displayOrder.
+
+**Response:**
+```json
+{
+  "success": true,
+  "totalOffers": 2,
+  "offers": [
+    {
+      "_id": "507f1f77bcf86cd799439090",
+      "title": "Summer Sale",
+      "description": "50% off all items",
+      "image": "1705316400000summer.jpg",
+      "isActive": true,
+      "displayOrder": 1,
+      "createdAt": "2024-01-15T10:20:00Z"
+    },
+    {
+      "_id": "507f1f77bcf86cd799439091",
+      "title": "Free Delivery",
+      "description": "Free delivery on orders above $50",
+      "image": "1705316500000delivery.jpg",
+      "isActive": true,
+      "displayOrder": 2,
+      "createdAt": "2024-01-15T10:25:00Z"
+    }
+  ]
+}
+```
+
+---
+
+##### 7. Get Single Offer
+```bash
+GET /api/offer/:id
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "offer": {
+    "_id": "507f1f77bcf86cd799439090",
+    "title": "Summer Sale",
+    "description": "50% off all items",
+    "image": "1705316400000summer.jpg",
+    "isActive": true,
+    "displayOrder": 1
+  }
+}
+```
+
+---
+
+### Image Access
+
+Images uploaded via offer creation are accessible at:
+
+```
+http://localhost:4000/images/{filename}
+
+Example:
+http://localhost:4000/images/1705316400000summer.jpg
+```
+
+---
+
+### Frontend Implementation
+
+#### Display Offer Image
+
+```jsx
+const imageUrl = `${url}/images/${offer.image}`;
+<img src={imageUrl} alt={offer.title} />
+```
+
+#### Fetch Active Offers
+
+```jsx
+const fetchActiveOffers = async () => {
+  try {
+    const response = await axios.get(url + "/api/offer/active");
+    if (response.data.success) {
+      setOffers(response.data.offers);
+    }
+  } catch (error) {
+    console.error("Error fetching offers:", error);
+  }
+};
+```
+
+#### Display in Carousel (Swiper example)
+
+```jsx
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+<Swiper
+  modules={[Navigation, Pagination, Autoplay]}
+  spaceBetween={10}
+  slidesPerView={1}
+  navigation
+  pagination={{ clickable: true }}
+  autoplay={{ delay: 5000 }}
+  responsive={{
+    768: { slidesPerView: 2 },
+    1024: { slidesPerView: 3 }
+  }}
+>
+  {offers.map((offer) => (
+    <SwiperSlide key={offer._id}>
+      <img src={`${url}/images/${offer.image}`} alt={offer.title} />
+      <h3>{offer.title}</h3>
+      <p>{offer.description}</p>
+    </SwiperSlide>
+  ))}
+</Swiper>
+```
+
+---
+
+### Data Model
+
+**File:** `backend/models/offerModel.js`
+
+```javascript
+{
+  title: String (required) - Offer title
+  description: String (required) - Offer description
+  image: String - Filename of uploaded image
+  isActive: Boolean - Whether offer is displayed (default: true)
+  displayOrder: Number - Order in carousel (sorted ascending)
+  createdAt: Date - Creation timestamp
+  updatedAt: Date - Last update timestamp
+}
+```
+
+---
+
+### Admin Page
+
+The admin interface provides a form and list for managing offers:
+
+**File:** `admin/src/pages/Offers/Offers.jsx`
+
+Features:
+- Form to create/edit offers
+- Image upload with preview
+- List view of all offers (active + inactive)
+- Activate/deactivate toggle
+- Edit and delete buttons
+- Display order customization
+
+---
+
+### Summary
+
+| Endpoint | Method | Auth | Purpose |
+|----------|--------|------|---------|
+| `/api/offer/create` | POST | ✅ Admin | Create new offer |
+| `/api/offer/list` | GET | ✅ Admin | List all offers |
+| `/api/offer/:id` | PUT | ✅ Admin | Update offer |
+| `/api/offer/toggle-status/:id` | PATCH | ✅ Admin | Activate/deactivate |
+| `/api/offer/:id` | DELETE | ✅ Admin | Delete offer |
+| `/api/offer/active` | GET | ❌ Public | Get active offers |
+| `/api/offer/:id` | GET | ❌ Public | Get single offer |
+
+---
+
+## 5. Order Cancellation
 
 ### Question
 > Annulation des commandes côté client: Existe-t-il un endpoint permettant aux clients d'annuler leurs commandes ? Si oui, pourrais-tu nous partager les détails (méthode, contraintes, statuts autorisés, etc.) ?
@@ -565,7 +937,7 @@ POST /api/order/:orderId/cancel
 
 ---
 
-## 5. Location Tracking Workflow
+## 6. Location Tracking Workflow
 
 ### Question
 > Workflow de la localisation: Si possible, pourrais-tu nous expliquer le workflow global des endpoints liés à la localisation ? Notamment: Est-ce qu'il y a l'utilisation de WebSockets ? Quel est l'ordre des appels API dans le cycle de commande (order flow) ?

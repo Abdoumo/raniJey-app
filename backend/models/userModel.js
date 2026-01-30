@@ -26,8 +26,11 @@ const userSchema = new mongoose.Schema(
       longitude: { type: Number, default: null },
       lastUpdated: { type: Date, default: null },
     },
+    profileImage: { type: String, default: "" },
+    bio: { type: String, default: "" },
+    profileUpdatedAt: { type: Date, default: null },
   },
-  { minimize: false }
+  { minimize: false, timestamps: true }
 );
 
 const userModel = mongoose.model.user || mongoose.model("user", userSchema);

@@ -18,6 +18,8 @@ const orderSchema = new mongoose.Schema({
   deliveredAt: { type: Date, default: null },
   estimatedDeliveryTime: { type: Number, default: null },
   deliveryType: { type: String, enum: ["standard", "door-to-door"], default: "standard" },
+  cancelledAt: { type: Date, default: null },
+  cancelReason: { type: String, default: null },
 });
 
 const orderModel =

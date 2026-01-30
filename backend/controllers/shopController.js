@@ -205,4 +205,83 @@ const toggleShopStatus = async (req, res) => {
   }
 };
 
-export { createShop, listShops, getShop, updateShop, deleteShop, toggleShopStatus };
+// Update shop discount
+const updateShopDiscount = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const { id } = req.params;
+    const { discountType, discountValue, minOrderAmount, maxDiscountAmount, description, validFrom, validUntil } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user || user.role !== "admin") {
+      return res.json({ success: false, message: "Unauthorized: Admin access required" });
+    }
+
+    const shop = await shopModel.findById(id);
+    if (!shop) {
+      return res.json({ success: false, message: "Shop not found" });
+    }
+
+    // Update discount fields
+    if (discountType) shop.discount.discountType = discountType;
+    if (discountValue !== undefined) shop.discount.discountValue = discountValue;
+    if (minOrderAmount !== undefined) shop.discount.minOrderAmount = minOrderAmount;
+    if (maxDiscountAmount !== undefined) shop.discount.maxDiscountAmount = maxDiscountAmount;
+    if (description) shop.discount.description = description;
+    if (validFrom) shop.discount.validFrom = validFrom;
+    if (validUntil) shop.discount.validUntil = validUntil;
+
+    await shop.save();
+    const updatedShop = await shopModel.findById(id);
+    res.json({ success: true, message: "Shop discount updated successfully", shop: updatedShop });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error updating discount" });
+  }
+};
+
+// Toggle shop discount
+const toggleShopDiscountStatus = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const { id } = req.params;
+
+    const user = await userModel.findById(userId);
+    if (!user || user.role !== "admin") {
+      return res.json({ success: false, message: "Unauthorized: Admin access required" });
+    }
+
+    const shop = await shopModel.findById(id);
+    if (!shop) {
+      return res.json({ success: false, message: "Shop not found" });
+    }
+
+    shop.discount.isActive = !shop.discount.isActive;
+    await shop.save();
+
+    const action = shop.discount.isActive ? "activated" : "deactivated";
+    res.json({ success: true, message: `Shop discount ${action} successfully`, shop });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Get shop discount (public)
+const getShopDiscount = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const shop = await shopModel.findById(id).select("discount");
+
+    if (!shop) {
+      return res.json({ success: false, message: "Shop not found" });
+    }
+
+    res.json({ success: true, discount: shop.discount });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+export { createShop, listShops, getShop, updateShop, deleteShop, toggleShopStatus, updateShopDiscount, toggleShopDiscountStatus, getShopDiscount };

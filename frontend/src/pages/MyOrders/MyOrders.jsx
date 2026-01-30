@@ -11,6 +11,8 @@ const MyOrders = () => {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [cancelingOrderId, setCancelingOrderId] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
 
   const fetchOrders = async () => {
     const response = await axios.post(
@@ -79,6 +81,38 @@ const MyOrders = () => {
     navigate(`/order-tracking/${orderId}`);
   };
 
+  const handleCancelOrder = async (orderId, reason) => {
+    try {
+      const response = await axios.post(
+        url + `/api/order/${orderId}/cancel`,
+        { reason },
+        { headers: { token } }
+      );
+
+      if (response.data.success) {
+        toast.success("Order cancelled successfully");
+        setCancelingOrderId(null);
+        setCancelReason("");
+        fetchOrders(); // Refresh the orders list
+      } else {
+        toast.error(response.data.message || "Failed to cancel order");
+      }
+    } catch (error) {
+      toast.error("Error cancelling order");
+      console.error(error);
+    }
+  };
+
+  const openCancelDialog = (orderId) => {
+    setCancelingOrderId(orderId);
+    setCancelReason("");
+  };
+
+  const closeCancelDialog = () => {
+    setCancelingOrderId(null);
+    setCancelReason("");
+  };
+
   return (
     <div className="my-orders">
       <h1>Your Orders</h1>
@@ -121,12 +155,22 @@ const MyOrders = () => {
                   {order.status}
                 </p>
                 {userRole === "user" && (
-                  <button
-                    className="track-btn"
-                    onClick={() => handleTrackOrder(order._id)}
-                  >
-                    Track Order
-                  </button>
+                  <div className="order-actions">
+                    <button
+                      className="track-btn"
+                      onClick={() => handleTrackOrder(order._id)}
+                    >
+                      Track Order
+                    </button>
+                    {order.status === "Pending" && (
+                      <button
+                        className="cancel-btn"
+                        onClick={() => openCancelDialog(order._id)}
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             );
@@ -137,6 +181,33 @@ const MyOrders = () => {
           </div>
         )}
       </div>
+
+      {/* Cancel Order Dialog */}
+      {cancelingOrderId && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Cancel Order</h2>
+            <p>Are you sure you want to cancel this order?</p>
+            <textarea
+              placeholder="Reason for cancellation (optional)"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              className="cancel-reason-input"
+            />
+            <div className="modal-actions">
+              <button
+                className="btn-confirm"
+                onClick={() => handleCancelOrder(cancelingOrderId, cancelReason)}
+              >
+                Confirm Cancellation
+              </button>
+              <button className="btn-cancel" onClick={closeCancelDialog}>
+                Keep Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

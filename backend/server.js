@@ -11,6 +11,9 @@ import shopRouter from "./routes/shopRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import locationRouter from "./routes/locationRoute.js";
 import pricingRouter from "./routes/pricingRoute.js";
+import offerRouter from "./routes/offerRoute.js";
+import couponRouter from "./routes/couponRoute.js";
+import profileRouter from "./routes/profileRoute.js";
 import setupWebSocket from "./config/websocket.js";
 
 // app config
@@ -58,6 +61,9 @@ app.use("/api/shop", shopRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/location", locationRouter);
 app.use("/api/pricing", pricingRouter);
+app.use("/api/offer", offerRouter);
+app.use("/api/coupon", couponRouter);
+app.use("/api/profile", profileRouter);
 
 app.get("/", (req, res) => {
   res.send("API Working - Pricing route active");

@@ -1,6 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/auth.js";
-import { listOrders, placeOrder, updateStatus, userOrders, verifyOrder, getNearestOrders, getAvailableOrders, getPendingOrders, acceptOrder, getOrder, markDelivered } from "../controllers/orderController.js";
+import { listOrders, placeOrder, updateStatus, userOrders, verifyOrder, getNearestOrders, getAvailableOrders, getPendingOrders, acceptOrder, getOrder, markDelivered, cancelOrder } from "../controllers/orderController.js";
 import orderModel from "../models/orderModel.js";
 
 const orderRouter = express.Router();
@@ -62,5 +62,6 @@ orderRouter.get("/:orderId", authMiddleware, getOrder);
 // Order actions
 orderRouter.post("/accept", authMiddleware, acceptOrder);
 orderRouter.post("/delivered", authMiddleware, markDelivered);
+orderRouter.post("/:orderId/cancel", authMiddleware, cancelOrder);
 
 export default orderRouter;
