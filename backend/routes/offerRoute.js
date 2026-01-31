@@ -36,12 +36,15 @@ offerRouter.get("/active", getActiveOffers);
 // Admin only routes
 offerRouter.post("/create", (req, res, next) => {
   console.log("🔥 POST /api/offer/create received");
-  console.log("Headers:", req.headers);
   next();
-}, authMiddleware, upload.single("image"), (req, res, next) => {
-  console.log("📤 After auth & multer middleware");
+}, authMiddleware, (req, res, next) => {
+  console.log("✅ After authMiddleware - req.userId:", req.userId);
+  console.log("✅ After authMiddleware - req.body.userId:", req.body.userId);
+  next();
+}, upload.single("image"), (req, res, next) => {
+  console.log("📤 After multer middleware");
+  console.log("req.userId:", req.userId);
   console.log("File:", req.file ? `${req.file.filename}` : "No file");
-  console.log("Body:", req.body);
   next();
 }, createOffer);
 offerRouter.get("/list", authMiddleware, listOffers);
