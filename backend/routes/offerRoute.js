@@ -34,29 +34,25 @@ const handleMulterError = (err, req, res, next) => {
 offerRouter.get("/active", getActiveOffers);
 
 // Admin only routes
-offerRouter.post("/create", authMiddleware, (req, res, next) => {
-  console.log("📤 File upload started, field name: 'image'");
-  upload.single("image")(req, res, (err) => {
-    if (err) {
-      console.log("❌ Multer error:", err.message);
-      return res.json({ success: false, message: `Upload error: ${err.message}` });
-    }
-    console.log("📸 File received:", req.file ? `${req.file.filename}` : "No file");
-    next();
-  });
+offerRouter.post("/create", (req, res, next) => {
+  console.log("🔥 POST /api/offer/create received");
+  console.log("Headers:", req.headers);
+  next();
+}, authMiddleware, upload.single("image"), (req, res, next) => {
+  console.log("📤 After auth & multer middleware");
+  console.log("File:", req.file ? `${req.file.filename}` : "No file");
+  console.log("Body:", req.body);
+  next();
 }, createOffer);
 offerRouter.get("/list", authMiddleware, listOffers);
 offerRouter.patch("/toggle-status/:id", authMiddleware, toggleOfferStatus);
-offerRouter.put("/:id", authMiddleware, (req, res, next) => {
-  console.log("📤 File upload started for update, field name: 'image'");
-  upload.single("image")(req, res, (err) => {
-    if (err) {
-      console.log("❌ Multer error:", err.message);
-      return res.json({ success: false, message: `Upload error: ${err.message}` });
-    }
-    console.log("📸 File received:", req.file ? `${req.file.filename}` : "No file (optional for updates)");
-    next();
-  });
+offerRouter.put("/:id", (req, res, next) => {
+  console.log("🔥 PUT /api/offer/:id received");
+  next();
+}, authMiddleware, upload.single("image"), (req, res, next) => {
+  console.log("📤 After auth & multer middleware for update");
+  console.log("File:", req.file ? `${req.file.filename}` : "No file");
+  next();
 }, updateOffer);
 offerRouter.delete("/:id", authMiddleware, deleteOffer);
 
