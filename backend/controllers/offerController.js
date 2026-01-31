@@ -98,13 +98,21 @@ const updateOffer = async (req, res) => {
     const { id } = req.params;
     const { title, description, displayOrder } = req.body;
 
+    console.log("📝 Update offer - userId:", userId, "offerId:", id);
+
     const user = await userModel.findById(userId);
+    console.log("👤 User found:", user ? `${user.name} (role: ${user.role})` : "❌ Not found");
+
     if (!user || user.role !== "admin") {
+      console.log("❌ Unauthorized - not an admin");
       return res.json({ success: false, message: "Unauthorized: Admin access required" });
     }
 
     const offer = await offerModel.findById(id);
+    console.log("📋 Offer found:", offer ? offer.title : "❌ Not found");
+
     if (!offer) {
+      console.log("❌ Offer not found in database");
       return res.json({ success: false, message: "Offer not found" });
     }
 
@@ -115,18 +123,23 @@ const updateOffer = async (req, res) => {
 
     // Update image if provided
     if (req.file) {
+      console.log("📸 New image provided:", req.file.filename);
       if (offer.image) {
-        fs.unlink(`uploads/${offer.image}`, () => {});
+        fs.unlink(`uploads/${offer.image}`, () => {
+          console.log("🗑️  Old image deleted");
+        });
       }
       offer.image = req.file.filename;
     }
 
     await offer.save();
+    console.log("✅ Offer saved successfully");
+
     const updatedOffer = await offerModel.findById(id);
     res.json({ success: true, message: "Offer updated successfully", offer: updatedOffer });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.log("❌ Update error:", error.message);
+    res.json({ success: false, message: "Error: " + error.message });
   }
 };
 

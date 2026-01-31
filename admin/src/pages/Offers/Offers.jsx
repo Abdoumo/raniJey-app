@@ -87,6 +87,7 @@ const Offers = ({ url }) => {
 
       if (editingId) {
         console.log("✏️  Updating offer:", editingId);
+        console.log("Request URL:", url + `/api/offer/${editingId}`);
         const response = await axios.put(
           url + `/api/offer/${editingId}`,
           submitFormData,
@@ -98,7 +99,7 @@ const Offers = ({ url }) => {
           resetForm();
           fetchOffers();
         } else {
-          toast.error(response.data.message);
+          toast.error(response.data.message || "Failed to update offer");
         }
       } else {
         if (!image) {
@@ -107,6 +108,7 @@ const Offers = ({ url }) => {
           return;
         }
         console.log("➕ Creating new offer");
+        console.log("Request URL:", url + "/api/offer/create");
         const response = await axios.post(
           url + "/api/offer/create",
           submitFormData,
@@ -118,14 +120,23 @@ const Offers = ({ url }) => {
           resetForm();
           fetchOffers();
         } else {
-          toast.error(response.data.message);
+          toast.error(response.data.message || "Failed to create offer");
         }
       }
     } catch (error) {
-      console.error("❌ Error details:", error);
-      console.error("Status:", error.response?.status);
-      console.error("Message:", error.response?.data?.message);
-      toast.error("Error saving offer: " + (error.response?.data?.message || error.message));
+      console.error("❌ Full error object:", error);
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Status code:", error.response?.status);
+      console.error("❌ Response data:", error.response?.data);
+
+      let errorMessage = "Error saving offer";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 

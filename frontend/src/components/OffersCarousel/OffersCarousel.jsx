@@ -31,58 +31,76 @@ const OffersCarousel = () => {
   }, [url]);
 
   if (loading) {
-    return <div className="offers-carousel-loading">Loading offers...</div>;
+    return <div className="offers-carousel-loading">Loading special offers...</div>;
   }
 
   if (!offers || offers.length === 0) {
-    return null; // Don't show carousel if no offers
+    return null;
   }
 
   return (
-    <div className="offers-carousel-wrapper">
+    <div className="offers-carousel-container">
+      <div className="offers-header">
+        <h2 className="offers-section-title">✨ Special Offers & Deals</h2>
+        <p className="offers-section-subtitle">Don't miss out on our exclusive promotions</p>
+      </div>
+
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
-        spaceBetween={16}
+        spaceBetween={20}
         slidesPerView={1}
         navigation={true}
-        pagination={{ clickable: true }}
-        autoplay={{ delay: 5000, disableOnInteraction: false }}
+        pagination={{ clickable: true, dynamicBullets: true }}
+        autoplay={{ delay: 6000, disableOnInteraction: true }}
         loop={offers.length > 1}
         breakpoints={{
           640: {
             slidesPerView: 1,
-            spaceBetween: 16,
+            spaceBetween: 20,
           },
           768: {
             slidesPerView: 2,
-            spaceBetween: 16,
+            spaceBetween: 20,
           },
           1024: {
-            slidesPerView: 3,
-            spaceBetween: 16,
+            slidesPerView: 2,
+            spaceBetween: 24,
           },
           1440: {
-            slidesPerView: 4,
-            spaceBetween: 20,
+            slidesPerView: 3,
+            spaceBetween: 28,
           },
         }}
         className="offers-carousel"
       >
         {offers.map((offer) => (
           <SwiperSlide key={offer._id}>
-            <div className="offer-slide">
-              <div className="offer-image">
-                {offer.image ? (
-                  <img src={`${url}/images/${offer.image}`} alt={offer.title} />
-                ) : (
-                  <div className="offer-image-placeholder">
-                    <span>No Image</span>
-                  </div>
-                )}
-              </div>
-              <div className="offer-info">
-                <h3 className="offer-title">{offer.title}</h3>
-                <p className="offer-description">{offer.description}</p>
+            <div className="offer-card-wrapper">
+              <div className="offer-card">
+                <div className="offer-badge">SPECIAL</div>
+                <div className="offer-image-container">
+                  {offer.image ? (
+                    <img
+                      src={`${url}/images/${offer.image}`}
+                      alt={offer.title}
+                      className="offer-image-content"
+                    />
+                  ) : (
+                    <div className="offer-image-placeholder">
+                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                      </svg>
+                    </div>
+                  )}
+                  <div className="offer-overlay"></div>
+                </div>
+                <div className="offer-content">
+                  <h3 className="offer-card-title">{offer.title}</h3>
+                  <p className="offer-card-description">{offer.description}</p>
+                  <button className="offer-cta-button">View Offer</button>
+                </div>
               </div>
             </div>
           </SwiperSlide>
