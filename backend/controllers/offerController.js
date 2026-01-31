@@ -7,7 +7,7 @@ const createOffer = async (req, res) => {
   const { title, description, displayOrder } = req.body;
 
   try {
-    const userId = req.body.userId;
+    const userId = req.userId || req.body.userId;
     console.log("🔍 Creating offer - userId:", userId);
     const user = await userModel.findById(userId);
     console.log("👤 User data:", user ? { id: user._id, name: user.name, role: user.role, email: user.email } : "Not found");
@@ -45,7 +45,7 @@ const createOffer = async (req, res) => {
 // List all offers (Admin - includes inactive)
 const listOffers = async (req, res) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.userId || req.body.userId;
     console.log("📋 Fetching offers for userId:", userId);
     const user = await userModel.findById(userId);
     console.log("👤 User found:", user ? `${user.name} (role: ${user.role})` : "❌ User not found");
@@ -94,7 +94,7 @@ const getOffer = async (req, res) => {
 // Update offer (Admin only)
 const updateOffer = async (req, res) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.userId || req.body.userId;
     const { id } = req.params;
     const { title, description, displayOrder } = req.body;
 
@@ -133,7 +133,7 @@ const updateOffer = async (req, res) => {
 // Delete offer (Admin only)
 const deleteOffer = async (req, res) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.userId || req.body.userId;
     const { id } = req.params;
 
     const user = await userModel.findById(userId);
@@ -162,7 +162,7 @@ const deleteOffer = async (req, res) => {
 // Toggle offer status (Admin only)
 const toggleOfferStatus = async (req, res) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.userId || req.body.userId;
     const { id } = req.params;
 
     const user = await userModel.findById(userId);
