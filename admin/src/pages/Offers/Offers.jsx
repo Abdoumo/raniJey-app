@@ -81,12 +81,18 @@ const Offers = ({ url }) => {
         submitFormData.append("image", image);
       }
 
+      console.log("🚀 Sending request to:", url);
+      console.log("🔑 Token:", token ? "✓ Present" : "❌ Missing");
+      console.log("📤 Payload:", { title: formData.title, description: formData.description, displayOrder: formData.displayOrder, hasImage: !!image });
+
       if (editingId) {
+        console.log("✏️  Updating offer:", editingId);
         const response = await axios.put(
           url + `/api/offer/${editingId}`,
           submitFormData,
           { headers: { token } }
         );
+        console.log("✅ Update response:", response.data);
         if (response.data.success) {
           toast.success("Offer updated successfully");
           resetForm();
@@ -96,14 +102,17 @@ const Offers = ({ url }) => {
         }
       } else {
         if (!image) {
+          console.log("❌ No image selected");
           toast.error("Image is required for new offers");
           return;
         }
+        console.log("➕ Creating new offer");
         const response = await axios.post(
           url + "/api/offer/create",
           submitFormData,
           { headers: { token } }
         );
+        console.log("✅ Create response:", response.data);
         if (response.data.success) {
           toast.success("Offer created successfully");
           resetForm();
@@ -113,8 +122,10 @@ const Offers = ({ url }) => {
         }
       }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error saving offer");
+      console.error("❌ Error details:", error);
+      console.error("Status:", error.response?.status);
+      console.error("Message:", error.response?.data?.message);
+      toast.error("Error saving offer: " + (error.response?.data?.message || error.message));
     }
   };
 
