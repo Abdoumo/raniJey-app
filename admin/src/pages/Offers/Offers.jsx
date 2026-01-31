@@ -63,8 +63,11 @@ const Offers = ({ url }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("📝 Form submitted with data:", formData);
+    console.log("📸 Image:", image ? `Selected (${image.name})` : "No image selected");
 
     if (!formData.title.trim() || !formData.description.trim()) {
+      console.log("❌ Title or description is empty");
       toast.error("Title and description are required");
       return;
     }

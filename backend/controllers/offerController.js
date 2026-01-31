@@ -8,10 +8,18 @@ const createOffer = async (req, res) => {
 
   try {
     const userId = req.body.userId;
+    console.log("🔍 Creating offer - userId:", userId);
     const user = await userModel.findById(userId);
+    console.log("👤 User data:", user ? { id: user._id, name: user.name, role: user.role, email: user.email } : "Not found");
 
-    if (!user || user.role !== "admin") {
-      return res.json({ success: false, message: "Unauthorized: Admin access required" });
+    if (!user) {
+      console.log("❌ User not found in database");
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    if (user.role !== "admin") {
+      console.log(`❌ User role is '${user.role}', not 'admin'`);
+      return res.json({ success: false, message: `Unauthorized: Admin access required (your role: ${user.role})` });
     }
 
     let image_filename = "";
