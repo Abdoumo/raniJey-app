@@ -366,6 +366,33 @@ const setupWebSocket = (httpServer) => {
       }
     });
 
+    // Handle SUBSCRIBE_NOTIFICATIONS for real-time notifications
+    socket.on("SUBSCRIBE_NOTIFICATIONS", () => {
+      try {
+        const userId = socket.userId;
+        // Join user-specific notification room
+        socket.join(`user-${userId}`);
+        console.log(`User ${userId} subscribed to notifications`);
+        socket.emit("subscribed_to_notifications", { success: true, userId });
+      } catch (error) {
+        console.error("Error subscribing to notifications:", error);
+        socket.emit("error", { message: "Failed to subscribe to notifications" });
+      }
+    });
+
+    // Handle UNSUBSCRIBE_NOTIFICATIONS
+    socket.on("UNSUBSCRIBE_NOTIFICATIONS", () => {
+      try {
+        const userId = socket.userId;
+        socket.leave(`user-${userId}`);
+        console.log(`User ${userId} unsubscribed from notifications`);
+        socket.emit("unsubscribed_from_notifications", { success: true, userId });
+      } catch (error) {
+        console.error("Error unsubscribing from notifications:", error);
+        socket.emit("error", { message: "Failed to unsubscribe from notifications" });
+      }
+    });
+
     // Handle PING/PONG keep-alive
     socket.on("PING", () => {
       socket.emit("PONG", { timestamp: new Date().toISOString() });

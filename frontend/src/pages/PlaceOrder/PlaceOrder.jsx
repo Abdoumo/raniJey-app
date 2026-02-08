@@ -28,6 +28,8 @@ const PlaceOrder = () => {
   const [loadingDeliveryFee, setLoadingDeliveryFee] = useState(false);
   const [permissionError, setPermissionError] = useState(null);
   const [deliveryType, setDeliveryType] = useState(locationState?.state?.deliveryType || "standard");
+  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState(null);
+  const [loadingETA, setLoadingETA] = useState(false);
   const lastFetchedDistanceRef = useRef(null);
   const permissionRequestedRef = useRef(false);
   const debounceTimerRef = useRef(null);
@@ -204,6 +206,33 @@ const PlaceOrder = () => {
         } finally {
           setLoadingDeliveryFee(false);
         }
+
+        // Also calculate estimated delivery time
+        try {
+          setLoadingETA(true);
+          const etaResponse = await axios.post(
+            url + "/api/estimated-delivery/estimate",
+            {
+              shopLocation: {
+                latitude: shopLocation.latitude,
+                longitude: shopLocation.longitude
+              },
+              deliveryLocation: {
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude
+              }
+            }
+          );
+          if (etaResponse.data.success) {
+            setEstimatedDeliveryTime(etaResponse.data);
+            console.log('ETA calculated:', etaResponse.data);
+          }
+        } catch (error) {
+          console.error("Error calculating ETA:", error);
+          setEstimatedDeliveryTime(null);
+        } finally {
+          setLoadingETA(false);
+        }
       }, 300);
     } else if (!shopLocation || !shopLocation.latitude) {
       setDeliveryFee(0);
@@ -376,7 +405,18 @@ const PlaceOrder = () => {
               </div>
             </div>
             <hr />
-            <hr />
+            {estimatedDeliveryTime && (
+              <>
+                <div className="cart-total-details">
+                  <p>Estimated Delivery Time</p>
+                  <p>{estimatedDeliveryTime.estimatedMinutes || "..."} mins</p>
+                </div>
+                <p style={{ fontSize: "12px", color: "#666", marginTop: "8px" }}>
+                  📍 Distance: {estimatedDeliveryTime.distance} km
+                </p>
+                <hr />
+              </>
+            )}
             {deliveryType === "door-to-door" && (
               <div className="cart-total-details">
                 <p>Door-to-Door Premium</p>

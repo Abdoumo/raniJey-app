@@ -6,7 +6,11 @@ const orderSchema = new mongoose.Schema({
   items: { type: Array, required: true },
   amount: { type: Number, required: true },
   address: { type: Object, required: true },
-  status: { type: String, default: "Pending" },
+  status: {
+    type: String,
+    enum: ["Pending", "En préparation", "Accepted", "En route", "Out for Delivery", "Delivered", "Livrée", "Cancelled"],
+    default: "Pending"
+  },
   date: { type: Date, default: Date.now() },
   payment: { type: Boolean, default: false },
   assignedDeliveryPerson: { type: mongoose.Schema.Types.ObjectId, ref: "user", default: null },
@@ -20,6 +24,12 @@ const orderSchema = new mongoose.Schema({
   deliveryType: { type: String, enum: ["standard", "door-to-door"], default: "standard" },
   cancelledAt: { type: Date, default: null },
   cancelReason: { type: String, default: null },
+  statusHistory: [{
+    status: String,
+    timestamp: { type: Date, default: Date.now },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
+    notes: String
+  }],
 });
 
 const orderModel =

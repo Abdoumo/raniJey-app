@@ -192,13 +192,26 @@ const deleteAllNotifications = async (req, res) => {
 };
 
 // Helper function to create a notification (called from other controllers)
-const createNotification = async (userId, notificationData) => {
+const createNotification = async (userId, notificationData, io = null) => {
   try {
     const notification = new notificationModel({
       userId,
       ...notificationData,
     });
     await notification.save();
+
+    // Emit real-time notification via socket.io if io instance is provided
+    if (io) {
+      io.to(`user-${userId}`).emit("NOTIFICATION", {
+        success: true,
+        notification: notification.toObject(),
+        unreadCount: await notificationModel.countDocuments({
+          userId,
+          isRead: false,
+        }),
+      });
+    }
+
     return notification;
   } catch (error) {
     console.error("Error creating notification:", error);

@@ -61,6 +61,9 @@ connectDB();
 // Setup WebSocket
 const io = setupWebSocket(httpServer);
 
+// Make io instance available globally for controllers
+global.io = io;
+
 // api endpoints
 app.use("/api/food", foodRouter);
 app.use("/images", express.static("uploads"));

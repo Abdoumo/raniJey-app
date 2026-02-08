@@ -13,6 +13,26 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+// Helper function to update order status with history tracking
+const updateOrderStatus = async (order, newStatus, userId, notes = null) => {
+  const previousStatus = order.status;
+  order.status = newStatus;
+
+  // Add to status history
+  if (!order.statusHistory) {
+    order.statusHistory = [];
+  }
+
+  order.statusHistory.push({
+    status: newStatus,
+    timestamp: new Date(),
+    updatedBy: userId,
+    notes: notes
+  });
+
+  return { previousStatus, newStatus };
+};
+
 // placing user order for frontend
 const placeOrder = async (req, res) => {
   try {
@@ -389,7 +409,8 @@ const acceptOrder = async (req, res) => {
     // Update the order with delivery person assignment
     order.assignedDeliveryPerson = deliveryPersonId;
     order.assignedAt = new Date();
-    order.status = "Accepted";
+
+    const { previousStatus, newStatus } = await updateOrderStatus(order, "Accepted", deliveryPersonId, "Order accepted by delivery person");
 
     await order.save();
 
@@ -403,11 +424,11 @@ const acceptOrder = async (req, res) => {
       action: "order_accepted",
       actionData: {
         orderId,
-        previousStatus: "Pending",
-        newStatus: "Accepted",
+        previousStatus: previousStatus,
+        newStatus: newStatus,
         deliveryPersonName: deliveryPerson.name,
       },
-    });
+    }, global.io);
 
     res.json({
       success: true,
@@ -507,9 +528,8 @@ const markDelivered = async (req, res) => {
     }
 
     // Update order status
-    const previousStatus = order.status;
-    order.status = "Delivered";
     order.deliveredAt = new Date();
+    const { previousStatus, newStatus } = await updateOrderStatus(order, "Delivered", deliveryPersonId, "Order delivered by delivery person");
     await order.save();
 
     // Create notification for customer
@@ -523,9 +543,9 @@ const markDelivered = async (req, res) => {
       actionData: {
         orderId,
         previousStatus,
-        newStatus: "Delivered",
+        newStatus: newStatus,
       },
-    });
+    }, global.io);
 
     res.json({
       success: true,
@@ -580,18 +600,22 @@ const cancelOrder = async (req, res) => {
 
     // Business rules for cancellation
     if (!isAdmin) {
-      // Regular users can only cancel Pending orders
-      if (order.status !== "Pending") {
-        return res.json({ success: false, message: "Can only cancel orders that are pending. This order has already been accepted by a delivery person." });
+      // Regular users can only cancel Pending or Accepted orders
+      if (order.status !== "Pending" && order.status !== "Accepted") {
+        return res.json({ success: false, message: "Can only cancel orders that are pending or accepted. This order has already started delivery." });
+      }
+      // Reason is required for user cancellations
+      if (!reason) {
+        return res.json({ success: false, message: "Cancellation reason is required" });
       }
     }
     // Admin can cancel any order (no status restrictions)
 
     // Update order with cancellation details
-    const previousStatus = order.status;
-    order.status = "Cancelled";
     order.cancelledAt = new Date();
-    order.cancelReason = reason || "User requested cancellation";
+    order.cancelReason = reason || (isAdmin ? "Admin cancelled order" : "User requested cancellation");
+
+    const { previousStatus, newStatus } = await updateOrderStatus(order, "Cancelled", userId, `Cancelled - Reason: ${order.cancelReason}`);
 
     await order.save();
 
@@ -606,10 +630,10 @@ const cancelOrder = async (req, res) => {
       actionData: {
         orderId,
         previousStatus,
-        newStatus: "Cancelled",
+        newStatus: newStatus,
         reason: order.cancelReason,
       },
-    });
+    }, global.io);
 
     res.json({
       success: true,

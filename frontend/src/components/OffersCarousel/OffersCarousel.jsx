@@ -99,7 +99,6 @@ const OffersCarousel = () => {
                 <div className="offer-content">
                   <h3 className="offer-card-title">{offer.title}</h3>
                   <p className="offer-card-description">{offer.description}</p>
-                  <button className="offer-cta-button">View Offer</button>
                 </div>
               </div>
             </div>

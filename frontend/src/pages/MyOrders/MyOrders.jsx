@@ -82,6 +82,11 @@ const MyOrders = () => {
   };
 
   const handleCancelOrder = async (orderId, reason) => {
+    if (!reason || reason.trim() === "") {
+      toast.error("Please provide a reason for cancellation");
+      return;
+    }
+
     try {
       const response = await axios.post(
         url + `/api/order/${orderId}/cancel`,
@@ -162,7 +167,7 @@ const MyOrders = () => {
                     >
                       Track Order
                     </button>
-                    {order.status === "Pending" && (
+                    {(order.status === "Pending" || order.status === "Accepted") && (
                       <button
                         className="cancel-btn"
                         onClick={() => openCancelDialog(order._id)}
