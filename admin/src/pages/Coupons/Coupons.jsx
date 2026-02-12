@@ -208,7 +208,15 @@ const Coupons = () => {
     <div className="coupons-container">
       <div className="coupons-header">
         <h1>Manage Coupons</h1>
-        <button className="btn-add" onClick={() => setShowForm(!showForm)}>
+        <button
+          className="btn-add"
+          onClick={() => {
+            if (!showForm) {
+              resetForm();
+            }
+            setShowForm(!showForm);
+          }}
+        >
           {showForm ? "Cancel" : "+ Add Coupon"}
         </button>
       </div>
